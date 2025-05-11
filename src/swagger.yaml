@@ -1,0 +1,1897 @@
+openapi: 3.0.0
+info:
+  title: AI Sales API
+  description: Complete API documentation for the AI Sales system.
+  version: 1.0.0
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Authentication Routes
+  /api/v1/auth/sign-up:
+    post:
+      tags: [Authentication]
+      summary: Create a new user
+      description: Register a new user in the system.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Email already registered
+
+  /api/v1/auth/sign-in:
+    post:
+      tags: [Authentication]
+      summary: User login
+      description: |
+        Authenticate a user and return access and refresh tokens.
+        If `remember_me` is true, a refresh token will be included in the response.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+            example:
+              email: "user@example.com"
+              password: "yourpassword"
+              remember_me: true
+      responses:
+        '200':
+          description: Login successful. If `remember_me` is true, a refresh token is included.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  refresh_token:
+                    type: string
+                    description: Returned only if `remember_me` is true.
+                  user:
+                    $ref: '#/components/schemas/UserResponse'
+        '403':
+          description: Invalid email or password
+        '404':
+          description: User not found
+
+  /api/v1/auth/google:
+    post:
+      tags: [Authentication]
+      summary: Google login
+      description: |
+        Authenticate a user with Google and return access and refresh tokens.
+        
+        **Important Note**: This endpoint requires a valid Google ID token. You cannot obtain this token directly through Swagger UI.
+        To test this endpoint, you need to:
+        1. Use the Google Sign-In button on the frontend (http://localhost:8080)
+        2. Copy the ID token from the browser console
+        3. Use that token in this endpoint
+        
+        For development purposes, you can also use a test token, but it will not work in production.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthModel'
+            example:
+              id_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaXNzIjoiYWNjb3VudHMuZ29vZ2xlLmNvbSJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Invalid Google token
+
+  /api/v1/auth/logout:
+    get:
+      tags: [Authentication]
+      summary: User logout
+      description: Logout the current user and invalidate their token.
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /api/v1/auth/all-users:
+    get:
+      tags: [Authentication]
+      summary: Get all users
+      description: Retrieve all users in the system (admin only).
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: No users found
+
+  /api/v1/auth/{user_id}:
+    get:
+      tags: [Authentication]
+      summary: Get user by ID
+      description: Retrieve a user by their unique ID.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+
+    put:
+      tags: [Authentication]
+      summary: Update user
+      description: Update user details by their unique ID.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+
+    delete:
+      tags: [Authentication]
+      summary: Delete user
+      description: Delete a user by their unique ID.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          description: User not found
+
+  /api/v1/auth/by-email/{email}:
+    get:
+      tags: [Authentication]
+      summary: Get user by email
+      description: Retrieve a user by their email address.
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User not found
+
+  /api/v1/auth/users/{user_id}/change-role/{new_role_id}:
+    post:
+      tags: [Authentication]
+      summary: Change user role
+      description: Change a user's role to a new role.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: new_role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User role changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '404':
+          description: User or role not found
+
+  /api/v1/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user
+      description: Retrieve the currently authenticated user's details.
+      responses:
+        '200':
+          description: Current user retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBase'
+        '401':
+          description: User not authenticated
+
+  # Roles Routes
+  /api/v1/roles:
+    post:
+      tags: [Roles]
+      summary: Create a new role
+      description: Create a new role in the system.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleCreate'
+      responses:
+        '201':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '400':
+          description: Role with this name already exists
+
+    get:
+      tags: [Roles]
+      summary: Get all roles
+      description: Retrieve all roles in the system.
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoleResponse'
+
+  /api/v1/roles/{role_id}:
+    get:
+      tags: [Roles]
+      summary: Get role by ID
+      description: Retrieve a role by its unique ID.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Role retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '404':
+          description: Role not found
+
+    put:
+      tags: [Roles]
+      summary: Update role
+      description: Update role details by its unique ID.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleUpdate'
+      responses:
+        '200':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponse'
+        '404':
+          description: Role not found
+
+    delete:
+      tags: [Roles]
+      summary: Delete role
+      description: Delete a role by its unique ID.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Role deleted successfully
+        '404':
+          description: Role not found
+
+  # Role Permissions Routes
+  /api/v1/role-permissions:
+    post:
+      tags: [Role Permissions]
+      summary: Create a new role permission
+      description: Create a new role permission in the system.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RolePermissionCreate'
+      responses:
+        '201':
+          description: Role permission created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolePermissionResponse'
+        '400':
+          description: Invalid role permission data
+
+  /api/v1/role-permissions/{permission_id}:
+    get:
+      tags: [Role Permissions]
+      summary: Get role permission by ID
+      description: Retrieve a role permission by its unique ID.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: permission_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Role permission retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolePermissionResponse'
+        '404':
+          description: Role permission not found
+
+    put:
+      tags: [Role Permissions]
+      summary: Update role permission
+      description: Update role permission details by its unique ID.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: permission_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RolePermissionUpdate'
+      responses:
+        '200':
+          description: Role permission updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolePermissionResponse'
+        '404':
+          description: Role permission not found
+
+    delete:
+      tags: [Role Permissions]
+      summary: Delete role permission
+      description: Delete a role permission by its unique ID.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: permission_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Role permission deleted successfully
+        '404':
+          description: Role permission not found
+
+  /api/v1/role-permissions/by-role/{role_id}:
+    get:
+      tags: [Role Permissions]
+      summary: Get permissions by role ID
+      description: Retrieve all permissions for a specific role.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Role permissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RolePermissionResponse'
+
+  # Sessions Routes
+  /api/v1/sessions:
+    post:
+      tags: [Sessions]
+      summary: Create a new session
+      description: Create a new session in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+      responses:
+        '201':
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          description: Invalid session data
+
+  /api/v1/sessions/{session_id}:
+    get:
+      tags: [Sessions]
+      summary: Get session by ID
+      description: Retrieve a session by its unique ID.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '404':
+          description: Session not found
+
+    put:
+      tags: [Sessions]
+      summary: Update session
+      description: Update session details by its unique ID.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionUpdate'
+      responses:
+        '200':
+          description: Session updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '404':
+          description: Session not found
+
+    delete:
+      tags: [Sessions]
+      summary: Delete session
+      description: Delete a session by its unique ID.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Session deleted successfully
+        '404':
+          description: Session not found
+
+  /api/v1/sessions/by-user/{user_id}:
+    get:
+      tags: [Sessions]
+      summary: Get sessions by user ID
+      description: Retrieve all sessions for a specific user.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SessionResponse'
+
+  # Performance Reports Routes
+  /api/v1/performance-reports:
+    post:
+      tags: [Performance Reports]
+      summary: Create a new performance report
+      description: Create a new performance report.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReportCreate'
+      responses:
+        '201':
+          description: Performance report created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceReportResponse'
+
+  /api/v1/performance-reports/{report_id}:
+    get:
+      tags: [Performance Reports]
+      summary: Get performance report by ID
+      description: Retrieve a performance report by its ID.
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Performance report retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceReportResponse'
+        '404':
+          description: Performance report not found
+    put:
+      tags: [Performance Reports]
+      summary: Update performance report
+      description: Update a performance report by its ID.
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerformanceReportUpdate'
+      responses:
+        '200':
+          description: Performance report updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceReportResponse'
+        '404':
+          description: Performance report not found
+
+  /api/v1/auth/google-test:
+    get:
+      summary: Test Google OAuth Configuration
+      description: |
+        Test endpoint to verify Google OAuth configuration.
+        Returns the Google client ID and other configuration details.
+        
+        This endpoint can be used to check if your Google OAuth configuration is working correctly.
+      security: []
+      responses:
+        '200':
+          description: Configuration details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  google_client_id:
+                    type: string
+                  google_client_id_configured:
+                    type: boolean
+                  frontend_url:
+                    type: string
+                  instructions:
+                    type: string
+
+  # Subscriptions Routes
+  /api/v1/subscriptions:
+    get:
+      tags: [Subscriptions]
+      summary: Get all subscriptions
+      description: Retrieve all subscriptions.
+      responses:
+        '200':
+          description: Subscriptions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionResponse'
+    post:
+      tags: [Subscriptions]
+      summary: Create a new subscription
+      description: Create a new subscription.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionCreate'
+      responses:
+        '201':
+          description: Subscription created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+
+  /api/v1/subscriptions/{subscription_id}:
+    get:
+      tags: [Subscriptions]
+      summary: Get subscription by ID
+      description: Retrieve a subscription by its ID.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subscription retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '404':
+          description: Subscription not found
+    put:
+      tags: [Subscriptions]
+      summary: Update subscription
+      description: Update a subscription by its ID.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionUpdate'
+      responses:
+        '200':
+          description: Subscription updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '404':
+          description: Subscription not found
+    delete:
+      tags: [Subscriptions]
+      summary: Delete subscription
+      description: Delete a subscription by its ID.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Subscription deleted successfully
+        '404':
+          description: Subscription not found
+
+  /api/v1/subscriptions/by-user/{user_id}:
+    get:
+      tags: [Subscriptions]
+      summary: Get subscriptions by user ID
+      description: Retrieve all subscriptions for a specific user.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subscriptions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubscriptionResponse'
+
+  # AI Personas Routes
+  /api/v1/ai-personas:
+    get:
+      tags: [AI Personas]
+      summary: Get all AI Personas
+      description: Retrieve all AI Personas.
+      responses:
+        '200':
+          description: AI Personas retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AIPersonaResponse'
+    post:
+      tags: [AI Personas]
+      summary: Create a new AI Persona
+      description: Create a new AI Persona.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIPersonaCreate'
+      responses:
+        '201':
+          description: AI Persona created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIPersonaResponse'
+
+  /api/v1/ai-personas/{persona_id}:
+    get:
+      tags: [AI Personas]
+      summary: Get AI Persona by ID
+      description: Retrieve an AI Persona by its ID.
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: AI Persona retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIPersonaResponse'
+        '404':
+          description: AI Persona not found
+    put:
+      tags: [AI Personas]
+      summary: Update AI Persona
+      description: Update an AI Persona by its ID.
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIPersonaCreate'
+      responses:
+        '200':
+          description: AI Persona updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIPersonaResponse'
+        '404':
+          description: AI Persona not found
+
+  /api/v1/ai-personas/industry/{industry}:
+    get:
+      tags: [AI Personas]
+      summary: Get AI Personas by industry
+      description: Retrieve all AI Personas for a specific industry.
+      parameters:
+        - name: industry
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: AI Personas retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AIPersonaResponse'
+
+  # Interaction Modes Routes
+  /api/v1/interaction-modes:
+    get:
+      tags: [Interaction Modes]
+      summary: Get all interaction modes
+      description: Retrieve all interaction modes.
+      responses:
+        '200':
+          description: Interaction modes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InteractionModeResponse'
+    post:
+      tags: [Interaction Modes]
+      summary: Create a new interaction mode
+      description: Create a new interaction mode.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeCreate'
+      responses:
+        '201':
+          description: Interaction mode created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeResponse'
+
+  /api/v1/interaction-modes/{mode_id}:
+    get:
+      tags: [Interaction Modes]
+      summary: Get interaction mode by ID
+      description: Retrieve an interaction mode by its ID.
+      parameters:
+        - name: mode_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Interaction mode retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeResponse'
+        '404':
+          description: Interaction mode not found
+
+  /api/v1/interaction-modes/by-name/{name}:
+    get:
+      tags: [Interaction Modes]
+      summary: Get interaction mode by name
+      description: Retrieve an interaction mode by its name.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interaction mode retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeResponse'
+        '404':
+          description: Interaction mode not found
+
+  # Payments Routes
+  /api/v1/payments:
+    get:
+      tags: [Payments]
+      summary: Get all payments
+      description: Retrieve all payments.
+      responses:
+        '200':
+          description: Payments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentResponse'
+    post:
+      tags: [Payments]
+      summary: Create a new payment
+      description: Create a new payment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+      responses:
+        '201':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+
+  /api/v1/payments/{payment_id}:
+    get:
+      tags: [Payments]
+      summary: Get payment by ID
+      description: Retrieve a payment by its ID.
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '404':
+          description: Payment not found
+    put:
+      tags: [Payments]
+      summary: Update payment
+      description: Update a payment by its ID.
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentUpdate'
+      responses:
+        '200':
+          description: Payment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '404':
+          description: Payment not found
+    delete:
+      tags: [Payments]
+      summary: Delete payment
+      description: Delete a payment by its ID.
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Payment deleted successfully
+        '404':
+          description: Payment not found
+
+  /api/v1/payments/by-user/{user_id}:
+    get:
+      tags: [Payments]
+      summary: Get payments by user ID
+      description: Retrieve all payments for a specific user.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentResponse'
+
+  /api/v1/payments/by-subscription/{subscription_id}:
+    get:
+      tags: [Payments]
+      summary: Get payments by subscription ID
+      description: Retrieve all payments for a specific subscription.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentResponse'
+
+  # Feedback Routes
+  /api/v1/feedback:
+    post:
+      tags: [Feedback]
+      summary: Create feedback
+      description: Create feedback for a session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackCreate'
+      responses:
+        '201':
+          description: Feedback created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+
+    get:
+      tags: [Feedback]
+      summary: Get all feedback
+      description: Retrieve all feedback entries.
+      responses:
+        '200':
+          description: Feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeedbackResponse'
+
+  /api/v1/feedback/{feedback_id}:
+    get:
+      tags: [Feedback]
+      summary: Get feedback by ID
+      description: Retrieve feedback by its ID.
+      parameters:
+        - name: feedback_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackResponse'
+        '404':
+          description: Feedback not found
+    delete:
+      tags: [Feedback]
+      summary: Delete feedback
+      description: Delete feedback by its ID.
+      parameters:
+        - name: feedback_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Feedback deleted successfully
+        '404':
+          description: Feedback not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # User Schemas
+    UserBase:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone_number:
+          type: string
+          nullable: true
+
+
+
+    UserCreate:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            password:
+              type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+          nullable: true
+        last_name:
+          type: string
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+
+    UserResponse:
+      allOf:
+        - $ref: '#/components/schemas/UserBase'
+        - type: object
+          properties:
+            user_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            subscription:
+              $ref: '#/components/schemas/SubscriptionResponse'
+            role:
+              $ref: '#/components/schemas/RoleResponse'
+            status_active:
+              type: boolean
+
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        remember_me:
+          type: boolean
+          default: false
+          description: If true, a refresh token will be returned in the response.
+
+    GoogleAuthModel:
+      type: object
+      properties:
+        id_token:
+          type: string
+          description: Google ID token for authentication
+
+    # Role Schemas
+    RoleBase:
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - sales_person
+            - manager
+            - admin
+            - super_admin
+        description:
+          type: string
+          nullable: true
+
+    RoleCreate:
+      allOf:
+        - $ref: '#/components/schemas/RoleBase'
+
+    RoleUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - sales_person
+            - manager
+            - admin
+            - super_admin
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    RoleResponse:
+      allOf:
+        - $ref: '#/components/schemas/RoleBase'
+        - type: object
+          properties:
+            role_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+            status_active:
+              type: boolean
+
+    # Role Permission Schemas
+    RolePermissionBase:
+      type: object
+      properties:
+        resource:
+          type: string
+        action:
+          type: string
+
+    RolePermissionCreate:
+      allOf:
+        - $ref: '#/components/schemas/RolePermissionBase'
+        - type: object
+          properties:
+            role_id:
+              type: string
+              format: uuid
+
+    RolePermissionUpdate:
+      type: object
+      properties:
+        resource:
+          type: string
+          nullable: true
+        action:
+          type: string
+          nullable: true
+
+    RolePermissionResponse:
+      allOf:
+        - $ref: '#/components/schemas/RolePermissionBase'
+        - type: object
+          properties:
+            permission_id:
+              type: string
+              format: uuid
+            role_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    SessionCreate:
+      type: object
+      required:
+        - user_id
+        - start_time
+        - status
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        persona_id:
+          type: string
+          format: uuid
+        mode_id:
+          type: string
+          format: uuid
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        duration:
+          type: string
+          format: duration
+        status:
+          type: string
+          enum: [active, completed, abandoned]
+
+    SessionUpdate:
+      type: object
+      properties:
+        persona_id:
+          type: string
+          format: uuid
+        mode_id:
+          type: string
+          format: uuid
+        end_time:
+          type: string
+          format: date-time
+        duration:
+          type: string
+          format: duration
+        status:
+          type: string
+          enum: [active, completed, abandoned]
+
+    SessionResponse:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        persona_id:
+          type: string
+          format: uuid
+        mode_id:
+          type: string
+          format: uuid
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        duration:
+          type: string
+          format: duration
+        status:
+          type: string
+          enum: [active, completed, abandoned]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PerformanceReportCreate:
+      type: object
+      required:
+        - session_id
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        overall_score:
+          type: integer
+        engagement_level:
+          type: integer
+        communication_level:
+          type: integer
+        objection_handling:
+          type: integer
+        adaptability:
+          type: integer
+        persuasiveness:
+          type: integer
+        create_interest:
+          type: integer
+        sale_closing:
+          type: integer
+        discovery:
+          type: integer
+        cross_selling:
+          type: integer
+        solution_fit:
+          type: integer
+        coaching_summary:
+          type: string
+
+    PerformanceReportUpdate:
+      type: object
+      properties:
+        overall_score:
+          type: integer
+        engagement_level:
+          type: integer
+        communication_level:
+          type: integer
+        objection_handling:
+          type: integer
+        adaptability:
+          type: integer
+        persuasiveness:
+          type: integer
+        create_interest:
+          type: integer
+        sale_closing:
+          type: integer
+        discovery:
+          type: integer
+        cross_selling:
+          type: integer
+        solution_fit:
+          type: integer
+        coaching_summary:
+          type: string
+
+    PerformanceReportResponse:
+      type: object
+      properties:
+        report_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        overall_score:
+          type: integer
+        engagement_level:
+          type: integer
+        communication_level:
+          type: integer
+        objection_handling:
+          type: integer
+        adaptability:
+          type: integer
+        persuasiveness:
+          type: integer
+        create_interest:
+          type: integer
+        sale_closing:
+          type: integer
+        discovery:
+          type: integer
+        cross_selling:
+          type: integer
+        solution_fit:
+          type: integer
+        coaching_summary:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    SubscriptionCreate:
+      type: object
+      required:
+        - plan_type
+        - start_date
+        - end_date
+      properties:
+        plan_type:
+          type: string
+          enum: [free_trial, single_session, subscription, enterprise]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+
+    SubscriptionUpdate:
+      type: object
+      properties:
+        plan_type:
+          type: string
+          enum: [free_trial, single_session, subscription, enterprise]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status_active:
+          type: boolean
+
+    SubscriptionResponse:
+      type: object
+      properties:
+        subscription_id:
+          type: string
+          format: uuid
+        plan_type:
+          type: string
+          enum: [free_trial, single_session, subscription, enterprise]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        status_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AIPersonaCreate:
+      type: object
+      required:
+        - name
+        - industry
+      properties:
+        name:
+          type: string
+        industry:
+          type: string
+        role:
+          type: string
+        experience_level:
+          type: string
+          enum: [junior, mid, senior]
+        geography:
+          type: string
+        manufacturing_model:
+          type: string
+          enum: [self_manufacturing, contract_manufacturing]
+        behavioral_traits:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              intensity:
+                type: integer
+              description:
+                type: string
+        interview_results:
+          type: string
+          description: Structured Q&A data as text
+
+
+    AIPersonaResponse:
+      type: object
+      properties:
+        persona_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        industry:
+          type: string
+        role:
+          type: string
+        experience_level:
+          type: string
+          enum: [junior, mid, senior]
+        geography:
+          type: string
+        manufacturing_model:
+          type: string
+          enum: [self_manufacturing, contract_manufacturing]
+        behavioral_traits:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              intensity:
+                type: integer
+              description:
+                type: string
+        interview_results:
+          type: string
+          description: Structured Q&A data as text
+        status_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    InteractionModeCreate:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          enum: [prospecting, sales, closing]
+        description:
+          type: string
+
+
+    InteractionModeResponse:
+      type: object
+      properties:
+        mode_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          enum: [prospecting, sales, closing]
+        description:
+          type: string
+        status_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PaymentCreate:
+      type: object
+      required:
+        - subscription_id
+        - user_id
+        - amount
+        - currency
+        - payment_status
+        - payment_method
+        - payment_date
+      properties:
+        subscription_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        payment_status:
+          type: string
+          enum: [pending, paid, cancelled, failed, refunded]
+        payment_method:
+          type: string
+        payment_date:
+          type: string
+          format: date-time
+
+    PaymentUpdate:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        payment_status:
+          type: string
+          enum: [pending, paid, cancelled, failed, refunded]
+        payment_method:
+          type: string
+        payment_date:
+          type: string
+          format: date-time
+
+    PaymentResponse:
+      type: object
+      properties:
+        payment_id:
+          type: string
+          format: uuid
+        subscription_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+        payment_status:
+          type: string
+          enum: [pending, paid, cancelled, failed, refunded]
+        payment_method:
+          type: string
+        payment_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    FeedbackCreate:
+      type: object
+      required:
+        - user_id
+        - session_id
+        - rating
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+        comment:
+          type: string
+
+    FeedbackResponse:
+      type: object
+      properties:
+        feedback_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        rating:
+          type: integer
+        comment:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+tags:
+  - name: Authentication
+    description: User authentication and management
+  - name: Roles
+    description: Role management
+  - name: Sessions
+    description: Training session management
+  - name: Role Permissions
+    description: Role permission management
+  - name: Subscriptions
+    description: Subscription management
+  - name: AI Personas
+    description: AI Persona configuration
+  - name: Interaction Modes
+    description: Interaction mode management
+  - name: Performance Reports
+    description: Performance reporting
+  - name: Payments
+    description: Payment management
+  - name: Feedback
+    description: User feedback on sessions

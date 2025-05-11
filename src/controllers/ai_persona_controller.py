@@ -1,0 +1,111 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlmodel.ext.asyncio.session import AsyncSession
+from typing import List
+from DAL_files.ai_persona_dal import AIPersonaDAL
+from schemas.ai_personas_schemas import (
+    AIPersonaCreate,
+    AIPersonaUpdate,
+    AIPersonaResponse
+)
+from database import get_session
+from dependencies import RoleChecker, get_current_user
+from schemas.roles_schemas import RoleEnum
+
+# Create different role checkers for different access levels
+admin_checker = Depends(RoleChecker([RoleEnum.admin, RoleEnum.super_admin]))
+manager_checker = Depends(RoleChecker([RoleEnum.manager, RoleEnum.admin, RoleEnum.super_admin]))
+sales_checker = Depends(RoleChecker([RoleEnum.sales_person, RoleEnum.manager, RoleEnum.admin, RoleEnum.super_admin]))
+
+ai_persona_router = APIRouter()
+ai_persona_service = AIPersonaDAL()
+
+@ai_persona_router.post("/", response_model=AIPersonaResponse, status_code=status.HTTP_201_CREATED, dependencies=[admin_checker])
+async def create_ai_persona(
+    persona_data: AIPersonaCreate,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Create a new AI Persona
+    """
+    # Check if persona with the same name already exists
+    existing_persona = await ai_persona_service.get_ai_persona_by_name(persona_data.name, session)
+    if existing_persona:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="AI Persona with this name already exists."
+        )
+    
+    
+    new_persona = await ai_persona_service.create_ai_persona(persona_data, session)
+    return new_persona
+    
+
+@ai_persona_router.get("/{persona_id}", response_model=AIPersonaResponse, status_code=status.HTTP_200_OK, dependencies=[sales_checker])
+async def get_ai_persona(
+    persona_id: str,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Get an AI Persona by ID
+    """
+    persona = await ai_persona_service.get_ai_persona_by_id(persona_id, session)
+    if not persona:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="AI Persona not found"
+        )
+    return persona
+
+@ai_persona_router.get("/", response_model=List[AIPersonaResponse], status_code=status.HTTP_200_OK, dependencies=[sales_checker])
+async def get_all_ai_personas(
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Get all AI Personas
+    """
+    personas = await ai_persona_service.get_all_ai_personas(session)
+    return personas
+
+@ai_persona_router.get("/industry/{industry}", response_model=List[AIPersonaResponse], status_code=status.HTTP_200_OK, dependencies=[sales_checker])
+async def get_ai_personas_by_industry(
+    industry: str,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Get all AI Personas by industry
+    """
+    personas = await ai_persona_service.get_ai_personas_by_industry(industry, session)
+    return personas
+
+@ai_persona_router.put("/{persona_id}", response_model=AIPersonaResponse, status_code=status.HTTP_200_OK, dependencies=[manager_checker])
+async def update_ai_persona(
+    persona_id: str,
+    persona_data: AIPersonaUpdate,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Update an AI Persona
+    """
+    updated_persona = await ai_persona_service.update_ai_persona(persona_id, persona_data, session)
+    if not updated_persona:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="AI Persona not found"
+        )
+    return updated_persona
+
+@ai_persona_router.delete("/{persona_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[admin_checker])
+async def delete_ai_persona(
+    persona_id: str,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Delete an AI Persona
+    """
+    success = await ai_persona_service.delete_ai_persona(persona_id, session)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="AI Persona not found"
+        )
+    return None 

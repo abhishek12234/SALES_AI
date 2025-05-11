@@ -1,0 +1,23 @@
+from sqlalchemy import Column, String, TIMESTAMP, Text, Enum, text, Boolean
+from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.mysql import JSON
+from database import Base
+import uuid
+
+class AIPersona(Base):
+    __tablename__ = 'ai_personas'
+
+    persona_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String(100), nullable=False, unique=True)
+    industry = Column(String(100), nullable=True)
+    role = Column(String(100), nullable=True)
+    experience_level = Column(Enum('junior', 'mid', 'senior', 'executive', name='experience_level_enum'), nullable=True)
+    geography = Column(Text, nullable=True)
+    manufacturing_model = Column(Enum('self_manufacturing', 'contract_manufacturing', name='manufacturing_model_enum'), nullable=True)
+    behavioral_traits = Column(JSON, nullable=True)
+    interview_results = Column(Text, nullable=True)
+    status_active = Column(Boolean, nullable=False, server_default=text('true'))
+    created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
+    updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
+    # Relationships
+    sessions = relationship("Session", back_populates="persona")
