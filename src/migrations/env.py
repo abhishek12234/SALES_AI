@@ -15,6 +15,7 @@ from models.subscriptions import Subscription
 from models.interaction_modes import InteractionMode
 from models.performance_reports import PerformanceReport
 from models.payments import Payment
+from models.user_subscriptions import UserSubscription
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

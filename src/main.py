@@ -9,6 +9,8 @@ from controllers.ai_persona_controller import ai_persona_router
 from middleware import register_middleware
 from controllers.subscriptions_controller import subscriptions_router
 from controllers.interaction_modes_controller import interaction_modes_router
+from controllers.sessions_controller import sessions_router
+from controllers.user_subscriptions_controller import user_subscriptions_router
 import yaml
 import os
 
@@ -35,7 +37,8 @@ app.include_router(ai_persona_router, prefix="/api/{version}/ai-personas")
 app.include_router(role_permissions_router, prefix="/api/{version}/role-permissions")
 app.include_router(subscriptions_router, prefix="/api/{version}/subscriptions")
 app.include_router(interaction_modes_router, prefix="/api/{version}/interaction-modes")
-
+app.include_router(sessions_router, prefix="/api/{version}/sessions")
+app.include_router(user_subscriptions_router, prefix="/api/{version}/user-subscriptions")
 # Load Swagger YAML - using correct file path
 swagger_file_path = os.path.join(os.path.dirname(__file__), "swagger.yaml")
 try:

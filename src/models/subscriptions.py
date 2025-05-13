@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, TIMESTAMP, Enum, Date, ForeignKey, Boolean
+from sqlalchemy import Column, String, TIMESTAMP, Enum, Date, ForeignKey, Boolean,Interval,Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.mysql import CHAR
 from database import Base
@@ -14,11 +14,19 @@ class Subscription(Base):
         Enum('free_trial', 'single_session', 'subscription', 'enterprise', name='plan_type_enum'),
         nullable=False
     )
-    start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
+    billing_cycle = Column(
+        Enum('monthly', 'yearly', name='billing_cycle_enum'),
+        nullable=False,
+        server_default=text("'monthly'")
+    )
+
+    max_session_duration = Column(Integer, nullable=True)
     status_active = Column(Boolean, nullable=False, server_default=text('true'))
+    persona_limit = Column(Integer, nullable=False)
+    is_custom = Column(Boolean, nullable=False, server_default=text('false'))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"), onupdate=text("now()"))
     # Relationships
-    user = relationship("User", back_populates="subscription")
+ 
     payments = relationship("Payment", back_populates="subscription")
+    user_subscriptions = relationship("UserSubscription", back_populates="subscription")

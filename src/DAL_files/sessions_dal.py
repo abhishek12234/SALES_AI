@@ -5,7 +5,17 @@ from models.sessions import Session
 from schemas.sessions_schemas import SessionCreate, SessionUpdate
 from sqlalchemy.sql import exists
 from fastapi import HTTPException
+from datetime import datetime, timezone
+from models.users import User
+from models.ai_personas import AIPersona
+from models.interaction_modes import InteractionMode
+from .users_dal import UserDAL
+from .ai_persona_dal import AIPersonaDAL
+from .interaction_modes_dal import InteractionModeDAL
 
+users_service = UserDAL()
+persona_service = AIPersonaDAL()
+mode_service = InteractionModeDAL()
 class SessionDAL:
     async def session_exists(self, session_id: str, db_session: AsyncSession) -> bool:
         result = await db_session.execute(select(Session).where(Session.session_id == session_id))
@@ -18,15 +28,30 @@ class SessionDAL:
 
     async def create_session(self, session_data: SessionCreate, db_session: AsyncSession) -> Session:
         try:
-            new_session = Session(
-                user_id=session_data.user_id,
-                persona_id=session_data.persona_id,
-                mode_id=session_data.mode_id,
-                start_time=session_data.start_time,
-                end_time=session_data.end_time,
-                duration=session_data.duration,
-                status=session_data.status,
-            )
+            
+            # Validate user_id
+           
+            user = await users_service.get_user_by_id(session_data.user_id, db_session)
+            if not user:
+                raise HTTPException(status_code=404, detail='User not found')
+            # Validate persona_id if provided
+            
+            persona_id = session_data.persona_id
+            if persona_id is not None:
+                persona = await persona_service.get_ai_persona_by_id(persona_id, db_session)
+                if not persona:
+                    raise HTTPException(status_code=404, detail='Persona not found')
+            # Validate mode_id if provided
+       
+            mode_id = session_data.mode_id
+            if mode_id is not None:
+                mode = await mode_service.get_mode_by_id(mode_id, db_session)
+                if not mode:
+                    raise HTTPException(status_code=404, detail='Interaction mode not found')
+                
+            data = session_data.model_dump()
+            new_session = Session(**data)
+            new_session.start_time = datetime.now(timezone.utc)
             db_session.add(new_session)
             await db_session.commit()
             await db_session.refresh(new_session)

@@ -9,12 +9,15 @@ from .roles_dal import RoleDAL
 from .subscriptions_dal import SubscriptionDAL
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
+from .user_subscriptions_dal import UserSubscriptionDAL
 from config import settings
 import logging
 from fastapi import HTTPException
+from schemas.user_subscriptions_schemas import UserSubscriptionCreate
 
 roles_services = RoleDAL()
 subscriptions_services = SubscriptionDAL()
+
 logger = logging.getLogger(__name__)
 
 class UserDAL:
@@ -48,13 +51,9 @@ class UserDAL:
         if not default_role:
             raise HTTPException(status_code=500, detail="Default role not found")
         
-        default_subscription = await subscriptions_services.get_subscription_by_plan_type("free_trial", db_session)
-        if not default_subscription:
-            raise HTTPException(status_code=500, detail="Default subscription not found")
-
-        new_user.subscription_id = default_subscription.subscription_id
         new_user.role_id = default_role.role_id
-
+        
+        # Remove user subscription creation logic here
         # Add the new user to the session and commit
         try:
             db_session.add(new_user)
@@ -73,7 +72,10 @@ class UserDAL:
         result = await db_session.execute(
             select(User).where(User.email == email)
         )
-        return result.scalar_one_or_none()
+        user = result.scalar_one_or_none()
+        
+        return user
+        
 
     async def update_user(self, user_id: str, user_data: UserUpdate, db_session: AsyncSession) -> User:
         user = await self.get_user_by_id(user_id, db_session)

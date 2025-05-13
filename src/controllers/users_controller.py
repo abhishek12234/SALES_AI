@@ -12,6 +12,12 @@ from dependencies import RoleChecker, get_current_user, AccessTokenBearer
 from redis_store import add_jti_to_blocklist, token_in_blocklist
 import logging
 from schemas.roles_schemas import RoleEnum
+from DAL_files.user_subscriptions_dal import UserSubscriptionDAL
+from DAL_files.subscriptions_dal import SubscriptionDAL
+from schemas.user_subscriptions_schemas import UserSubscriptionCreate
+
+user_subscriptions_services = UserSubscriptionDAL()
+subscription_services = SubscriptionDAL()
 
 
 auth_router = APIRouter()
@@ -92,7 +98,7 @@ async def google_login(google_data: GoogleAuthModel, session: AsyncSession = Dep
     )
 
 
-@auth_router.post("/sign-up", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@auth_router.post("/sign-up", status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate,session: AsyncSession = Depends(get_session)):
     email=user.email
     # Check if email already exists 
@@ -103,9 +109,38 @@ async def create_user(user: UserCreate,session: AsyncSession = Depends(get_sessi
     created_user = await user_service.create_user(user, session)
     if not created_user:
         raise HTTPException(status_code=400, detail="User creation failed")
-    return created_user
+    
+    subscription = await subscription_services.get_subscription_by_plan_and_cycle("free_trial", "monthly", session)
+    if not subscription:
+        raise HTTPException(status_code=400, detail="Subscription not found add subscription")
+    
+    user_subscription = await user_subscriptions_services.create_user_subscription(UserSubscriptionCreate(user_id=created_user.user_id, subscription_id=subscription.subscription_id) , session)
+    if not user_subscription:
+        raise HTTPException(status_code=400, detail="User subscription creation failed")
+    
+    # Fetch the user again to get updated relationships
+    created_user = await user_service.get_user_by_id(created_user.user_id, session)
+    # Generate token
+    access_token = create_access_token(
+        user_data={
+            "email": created_user.email,
+            "user_id": str(created_user.user_id),
+            "role_id": created_user.role_id
+        }
+    )
+    return {
+        "message": "User created successfully",
+        "user": {
+            "user_id": created_user.user_id,
+            "email": created_user.email,
+            "first_name": created_user.first_name,
+            "last_name": created_user.last_name
+        },
+        "token": access_token
+    }
 
 @auth_router.get("/logout")
+
 async def logout_users(token_details: str = Depends(AccessTokenBearer())):
     jti = token_details["jti"]
     # Add the JTI to the blocklist with an expiry time

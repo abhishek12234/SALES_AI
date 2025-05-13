@@ -30,6 +30,7 @@ async def init_db():
     from models.interaction_modes import InteractionMode
     from models.performance_reports import PerformanceReport
     from models.payments import Payment
+    from models.user_subscriptions import UserSubscription
 
     async with async_engine.begin() as conn:
 

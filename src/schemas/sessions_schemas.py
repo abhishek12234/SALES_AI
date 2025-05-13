@@ -11,12 +11,9 @@ class SessionStatusEnum(str, Enum):
 
 class SessionBase(BaseModel):
     user_id: str
-    persona_id: Optional[str] = None
-    mode_id: Optional[str] = None
-    start_time: datetime
-    end_time: Optional[datetime] = None
-    duration: Optional[str] = None  # interval as string
-    status: SessionStatusEnum
+    persona_id: str
+    mode_id: str
+
 
 class SessionCreate(SessionBase):
     pass
@@ -30,6 +27,10 @@ class SessionUpdate(BaseModel):
 
 class SessionResponse(SessionBase):
     session_id: str
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    duration: Optional[str] = None  # interval as string
+    status: SessionStatusEnum
     created_at: datetime
     updated_at: datetime
 

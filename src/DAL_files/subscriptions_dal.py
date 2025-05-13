@@ -52,13 +52,33 @@ class SubscriptionDAL:
             select(Subscription).where(Subscription.plan_type == plan_type)
         )
         return result.scalars().first()
+    
+    async def get_subscription_by_plan_and_cycle(self, plan_type: str, billing_cycle: str, db_session: AsyncSession) -> Subscription:
+        result = await db_session.execute(
+            select(Subscription).where(
+                Subscription.plan_type == plan_type,
+                Subscription.billing_cycle == billing_cycle
+            )   
+        )
+        return result.unique().scalars().first()
+    
+    async def subscription_exists_by_plan_and_cycle(self, plan_type: str, billing_cycle: str, db_session: AsyncSession) -> bool:
+        result = await db_session.execute(
+            select(Subscription).where(
+                Subscription.plan_type == plan_type,
+                Subscription.billing_cycle == billing_cycle
+            )
+        )
+        return result.scalar_one_or_none() is not None
 
     async def create_subscription(self, subscription_data: SubscriptionCreate, db_session: AsyncSession) -> Subscription:
-        new_subscription = Subscription(
-            plan_type=subscription_data.plan_type,
-            start_date=subscription_data.start_date,
-            end_date=subscription_data.end_date,
+        # Check if subscription exists with same plan_type and billing_cycle
+        exists = await self.subscription_exists_by_plan_and_cycle(
+            subscription_data.plan_type, subscription_data.billing_cycle, db_session
         )
+        if exists:
+            raise HTTPException(status_code=400, detail="Subscription with this plan type and billing cycle already exists.")
+        new_subscription = Subscription(**subscription_data.model_dump())
         db_session.add(new_subscription)
         await db_session.commit()
         await db_session.refresh(new_subscription)

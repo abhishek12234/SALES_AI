@@ -27,7 +27,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                $ref: '#/components/schemas/SignUpResponse'
         '400':
           description: Email already registered
 
@@ -1225,6 +1225,134 @@ paths:
         '404':
           description: Feedback not found
 
+  # User Subscriptions Routes
+  /api/v1/user-subscriptions:
+    post:
+      tags: [User Subscriptions]
+      summary: Create a new user subscription
+      description: Create a new user subscription.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSubscriptionCreate'
+      responses:
+        '201':
+          description: User subscription created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionResponse'
+
+  /api/v1/user-subscriptions/{user_subscription_id}:
+    get:
+      tags: [User Subscriptions]
+      summary: Get user subscription by ID
+      description: Retrieve a user subscription by its ID.
+      parameters:
+        - name: user_subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User subscription retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionResponse'
+        '404':
+          description: User subscription not found
+    put:
+      tags: [User Subscriptions]
+      summary: Update user subscription
+      description: Update a user subscription by its ID.
+      parameters:
+        - name: user_subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSubscriptionUpdate'
+      responses:
+        '200':
+          description: User subscription updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSubscriptionResponse'
+        '404':
+          description: User subscription not found
+    delete:
+      tags: [User Subscriptions]
+      summary: Delete user subscription
+      description: Delete a user subscription by its ID.
+      parameters:
+        - name: user_subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User subscription deleted successfully
+        '404':
+          description: User subscription not found
+
+  /api/v1/user-subscriptions/by-user/{user_id}:
+    get:
+      tags: [User Subscriptions]
+      summary: Get user subscriptions by user ID
+      description: Retrieve all user subscriptions for a specific user.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User subscriptions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSubscriptionResponse'
+
+  /api/v1/user-subscriptions/by-subscription/{subscription_id}:
+    get:
+      tags: [User Subscriptions]
+      summary: Get user subscriptions by subscription ID
+      description: Retrieve all user subscriptions for a specific subscription.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User subscriptions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSubscriptionResponse'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1247,8 +1375,6 @@ components:
         phone_number:
           type: string
           nullable: true
-
-
 
     UserCreate:
       allOf:
@@ -1424,18 +1550,7 @@ components:
         mode_id:
           type: string
           format: uuid
-        start_time:
-          type: string
-          format: date-time
-        end_time:
-          type: string
-          format: date-time
-        duration:
-          type: string
-          format: duration
-        status:
-          type: string
-          enum: [active, completed, abandoned]
+
 
     SessionUpdate:
       type: object
@@ -1592,18 +1707,22 @@ components:
       type: object
       required:
         - plan_type
-        - start_date
-        - end_date
+        - billing_cycle
+        - persona_limit
       properties:
         plan_type:
           type: string
           enum: [free_trial, single_session, subscription, enterprise]
-        start_date:
+        billing_cycle:
           type: string
-          format: date
-        end_date:
-          type: string
-          format: date
+          enum: [monthly, yearly]
+        max_session_duration:
+          type: integer
+        persona_limit:
+          type: integer
+        is_custom:
+          type: boolean
+          default: false
 
     SubscriptionUpdate:
       type: object
@@ -1611,13 +1730,17 @@ components:
         plan_type:
           type: string
           enum: [free_trial, single_session, subscription, enterprise]
-        start_date:
+        billing_cycle:
           type: string
-          format: date
-        end_date:
-          type: string
-          format: date
+          enum: [monthly, yearly]
         status_active:
+          type: boolean
+        max_session_duration:
+          type: integer
+          nullable: true
+        persona_limit:
+          type: integer
+        is_custom:
           type: boolean
 
     SubscriptionResponse:
@@ -1629,12 +1752,16 @@ components:
         plan_type:
           type: string
           enum: [free_trial, single_session, subscription, enterprise]
-        start_date:
+        billing_cycle:
           type: string
-          format: date
-        end_date:
-          type: string
-          format: date
+          enum: [monthly, yearly]
+        max_session_duration:
+          type: integer
+          nullable: true
+        persona_limit:
+          type: integer
+        is_custom:
+          type: boolean
         status_active:
           type: boolean
         created_at:
@@ -1678,7 +1805,6 @@ components:
         interview_results:
           type: string
           description: Structured Q&A data as text
-
 
     AIPersonaResponse:
       type: object
@@ -1734,7 +1860,6 @@ components:
           enum: [prospecting, sales, closing]
         description:
           type: string
-
 
     InteractionModeResponse:
       type: object
@@ -1874,6 +1999,88 @@ components:
           type: string
           format: date-time
 
+    UserSubscriptionBase:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        subscription_id:
+          type: string
+          format: uuid
+
+
+    UserSubscriptionCreate:
+      allOf:
+        - $ref: '#/components/schemas/UserSubscriptionBase'
+
+    UserSubscriptionUpdate:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        status_active:
+          type: boolean
+        time_used:
+          type: integer
+          description: Duration in seconds
+        sessions_completed:
+          type: integer
+
+    UserSubscriptionResponse:
+      allOf:
+        - $ref: '#/components/schemas/UserSubscriptionBase'
+        - type: object
+          properties:
+            user_subscription_id:
+              type: string
+              format: uuid
+            status_active:
+              type: boolean
+            start_date:
+              type: string
+              format: date-time
+            end_date:
+              type: string
+              format: date-time
+
+            time_used:
+              type: integer
+              description: Duration in seconds
+            sessions_completed:
+              type: integer
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    SignUpResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          type: object
+          properties:
+            user_id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            first_name:
+              type: string
+            last_name:
+              type: string
+        token:
+          type: string
+
 tags:
   - name: Authentication
     description: User authentication and management
@@ -1895,3 +2102,5 @@ tags:
     description: Payment management
   - name: Feedback
     description: User feedback on sessions
+  - name: User Subscriptions
+    description: User subscription management

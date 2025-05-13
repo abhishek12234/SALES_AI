@@ -16,7 +16,7 @@ class Session(Base):
     start_time = Column(TIMESTAMP, nullable=False)
     end_time = Column(TIMESTAMP, nullable=True)
     duration = Column(String(50), nullable=True)  # Changed from Integer to String for interval, now with length
-    status = Column(Enum('active', 'completed', 'abandoned', name='session_status_enum'), nullable=False)
+    status = Column(Enum('active', 'completed', 'abandoned', name='session_status_enum'), nullable=False, server_default=text("'active'"))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
 

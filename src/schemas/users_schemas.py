@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 from .roles_schemas import RoleResponse
-from .subscriptions_schemas import SubscriptionResponse
+from .user_subscriptions_schemas import UserSubscriptionResponse
 
 
 class UserBase(BaseModel):
@@ -35,7 +35,7 @@ class UserResponse(UserBase):
     user_id: str
     created_at: datetime
     updated_at: datetime
-    subscription: Optional[SubscriptionResponse] = None
+    user_subscriptions: Optional[list[UserSubscriptionResponse]] = None
     role: Optional[RoleResponse] = None
     status_active: bool
 

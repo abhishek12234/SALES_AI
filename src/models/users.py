@@ -18,17 +18,17 @@ class User(Base):
     first_name = Column(VARCHAR(50), nullable=False)
     last_name = Column(VARCHAR(50), nullable=False)
     role_id = Column(String(36), ForeignKey('roles.role_id'), nullable=True)
-    subscription_id = Column(String(36), ForeignKey('subscriptions.subscription_id'), nullable=True)
+
     status_active = Column(Boolean, nullable=False, server_default=text('true'))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"), onupdate=text("now()"))
 
     # Relationships
     feedback = relationship("Feedback", back_populates="user")
-    role = relationship("Role", back_populates="users", lazy="joined")
+    role = relationship("Role", back_populates="users", lazy="selectin")
     sessions = relationship("Session", back_populates="user")
-    subscription = relationship("Subscription", back_populates="user", lazy="joined")
     payments = relationship("Payment", back_populates="user")
+    user_subscriptions = relationship("UserSubscription", back_populates="user",lazy="selectin")
 
     # Constraints
     __table_args__ = (
