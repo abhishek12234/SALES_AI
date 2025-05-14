@@ -277,6 +277,68 @@ paths:
         '401':
           description: User not authenticated
 
+  /api/v1/auth/send-otp:
+    post:
+      tags: [Authentication]
+      summary: Send OTP to user's email
+      description: Generate and send a one-time password (OTP) to the user's email for verification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: OTP sent to email
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: User not found
+
+  /api/v1/auth/verify-otp:
+    post:
+      tags: [Authentication]
+      summary: Verify OTP
+      description: Verify the OTP sent to the user's email and mark the user as verified.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp_code:
+                  type: string
+      responses:
+        '200':
+          description: User verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  is_verified:
+                    type: boolean
+        '404':
+          description: User not found
+        '400':
+          description: Invalid OTP code or OTP expired
+
   # Roles Routes
   /api/v1/roles:
     post:
@@ -1376,6 +1438,7 @@ components:
           type: string
           nullable: true
 
+
     UserCreate:
       allOf:
         - $ref: '#/components/schemas/UserBase'
@@ -1383,6 +1446,7 @@ components:
           properties:
             password:
               type: string
+
 
     UserUpdate:
       type: object
@@ -1417,6 +1481,9 @@ components:
               $ref: '#/components/schemas/RoleResponse'
             status_active:
               type: boolean
+            is_verified:
+              type: boolean
+              default: false
 
     UserLogin:
       type: object

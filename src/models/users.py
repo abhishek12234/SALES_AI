@@ -20,6 +20,7 @@ class User(Base):
     role_id = Column(String(36), ForeignKey('roles.role_id'), nullable=True)
 
     status_active = Column(Boolean, nullable=False, server_default=text('true'))
+    is_verified = Column(Boolean, nullable=False, server_default=text('false'))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"), onupdate=text("now()"))
 
@@ -28,7 +29,7 @@ class User(Base):
     role = relationship("Role", back_populates="users", lazy="selectin")
     sessions = relationship("Session", back_populates="user")
     payments = relationship("Payment", back_populates="user")
-    user_subscriptions = relationship("UserSubscription", back_populates="user",lazy="selectin")
+    user_subscriptions = relationship("UserSubscription", back_populates="user", lazy="selectin", cascade="all, delete-orphan")
 
     # Constraints
     __table_args__ = (

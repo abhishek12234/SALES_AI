@@ -15,18 +15,27 @@ from schemas.roles_schemas import RoleEnum
 from DAL_files.user_subscriptions_dal import UserSubscriptionDAL
 from DAL_files.subscriptions_dal import SubscriptionDAL
 from schemas.user_subscriptions_schemas import UserSubscriptionCreate
+from pydantic import BaseModel, EmailStr
 
-user_subscriptions_services = UserSubscriptionDAL()
-subscription_services = SubscriptionDAL()
+
 
 
 auth_router = APIRouter()
 
-
 user_service = UserDAL()
+user_subscriptions_services = UserSubscriptionDAL()
+subscription_services = SubscriptionDAL()
+
 access_token_bearer=AccessTokenBearer()
 role_checker = Depends(RoleChecker([RoleEnum.admin, RoleEnum.super_admin]))
 REFRESH_TOKEN_EXPIRY = 2 
+
+class SendOtpRequest(BaseModel):
+    email: EmailStr
+
+class VerifyOtpRequest(BaseModel):
+    email: EmailStr
+    otp_code: str
 
 @auth_router.get("/all-users", response_model=list[UserResponse], dependencies=[role_checker])
 async def get_all_users(session: AsyncSession = Depends(get_session)):
@@ -100,6 +109,11 @@ async def google_login(google_data: GoogleAuthModel, session: AsyncSession = Dep
 
 @auth_router.post("/sign-up", status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate,session: AsyncSession = Depends(get_session)):
+
+    subscription = await subscription_services.get_subscription_by_plan_and_cycle("free_trial", "monthly", session)
+    if not subscription:
+        raise HTTPException(status_code=400, detail="Subscription not found add subscription")
+
     email=user.email
     # Check if email already exists 
     existing_user = await user_service.get_user_by_email(email, session)
@@ -110,9 +124,7 @@ async def create_user(user: UserCreate,session: AsyncSession = Depends(get_sessi
     if not created_user:
         raise HTTPException(status_code=400, detail="User creation failed")
     
-    subscription = await subscription_services.get_subscription_by_plan_and_cycle("free_trial", "monthly", session)
-    if not subscription:
-        raise HTTPException(status_code=400, detail="Subscription not found add subscription")
+
     
     user_subscription = await user_subscriptions_services.create_user_subscription(UserSubscriptionCreate(user_id=created_user.user_id, subscription_id=subscription.subscription_id) , session)
     if not user_subscription:
@@ -140,7 +152,6 @@ async def create_user(user: UserCreate,session: AsyncSession = Depends(get_sessi
     }
 
 @auth_router.get("/logout")
-
 async def logout_users(token_details: str = Depends(AccessTokenBearer())):
     jti = token_details["jti"]
     # Add the JTI to the blocklist with an expiry time
@@ -218,10 +229,10 @@ async def change_user_role_endpoint(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@auth_router.get("/users/by-email/{email}", response_model=UserResponse)
+@auth_router.get("/by-email/{email}", response_model=UserResponse)
 async def get_user_by_email(email: str,session: AsyncSession = Depends(get_session)):
     print(email,"=====================")
-    logger.info(f"Getting user by email: {email}")
+
     user = await user_service.get_user_by_email(email,session)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -239,7 +250,22 @@ async def delete_user(user_id: str,session: AsyncSession = Depends(get_session))
     success = await user_service.delete_user(user_id,session)
     if not success:
         raise HTTPException(status_code=404, detail="User not found")
-    return
+    return {"message": "User deleted successfully"}
+
+@auth_router.post("/send-otp")
+async def send_otp(request: SendOtpRequest, session: AsyncSession = Depends(get_session)):
+    user = await user_service.get_user_by_email(request.email, session)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    otp_code = user_service.generate_otp()
+    await user_service.save_otp(request.email, otp_code, expiry_minutes=10, db_session=session)
+    await user_service.send_otp_via_email(request.email, otp_code)
+    return {"message": "OTP sent to email"}
+
+@auth_router.post("/verify-otp")
+async def verify_otp(request: VerifyOtpRequest, session: AsyncSession = Depends(get_session)):
+    user = await user_service.verify_otp(request.email, request.otp_code, session)
+    return {"message": "User verified successfully", "is_verified": user.is_verified}
 
 
 

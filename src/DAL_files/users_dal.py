@@ -14,6 +14,10 @@ from config import settings
 import logging
 from fastapi import HTTPException
 from schemas.user_subscriptions_schemas import UserSubscriptionCreate
+import random
+from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
 
 roles_services = RoleDAL()
 subscriptions_services = SubscriptionDAL()
@@ -158,6 +162,47 @@ class UserDAL:
         except ValueError as e:
             # Token is invalid
             return None
+
+    async def save_otp(self, email: str, otp_code: str, expiry_minutes: int, db_session: AsyncSession):
+        user = await self.get_user_by_email(email, db_session)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user.otp_code = otp_code
+        user.otp_expiry = datetime.utcnow() + timedelta(minutes=expiry_minutes)
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+
+    async def verify_otp(self, email: str, otp_code: str, db_session: AsyncSession):
+        user = await self.get_user_by_email(email, db_session)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if user.otp_code != otp_code:
+            raise HTTPException(status_code=400, detail="Invalid OTP code")
+        if user.otp_expiry < datetime.utcnow():
+            raise HTTPException(status_code=400, detail="OTP expired")
+        user.is_verified = True
+        user.otp_code = None
+        user.otp_expiry = None
+        await db_session.commit()
+        await db_session.refresh(user)
+        return user
+
+    async def send_otp_via_email(self, email: str, otp_code: str):
+        # Placeholder for sending email. Replace with real email logic.
+        print(f"Sending OTP {otp_code} to {email}")
+        # Example using smtplib (configure as needed):
+        # msg = MIMEText(f"Your OTP code is: {otp_code}")
+        # msg['Subject'] = 'Your OTP Code'
+        # msg['From'] = 'noreply@example.com'
+        # msg['To'] = email
+        # with smtplib.SMTP('smtp.example.com') as server:
+        #     server.login('user', 'password')
+        #     server.sendmail(msg['From'], [msg['To']], msg.as_string())
+        return True
+
+    def generate_otp(self, length: int = 6) -> str:
+        return ''.join([str(random.randint(0, 9)) for _ in range(length)])
 
 
 

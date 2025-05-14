@@ -40,8 +40,8 @@ class RoleDAL:
         role = await self.role_exists(role_id,db_session)
         if not role:
             return None
-
-        return await db_session.get(Role, role_id)
+        result = await db_session.execute(select(Role).where(Role.role_id == role_id))
+        return result.scalar_one_or_none()
 
     async def get_role_by_name(self, name: str, db_session: AsyncSession) -> Role:
         result = await db_session.execute(

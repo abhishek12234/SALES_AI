@@ -11,11 +11,17 @@ class AIPersona(Base):
     name = Column(String(100), nullable=False, unique=True)
     industry = Column(String(100), nullable=True)
     role = Column(String(100), nullable=True)
-    experience_level = Column(Enum('junior', 'mid', 'senior', 'executive', name='experience_level_enum'), nullable=True)
+    experience_level = Column(Enum('junior', 'mid', 'senior', name='experience_level_enum'), nullable=True)
     geography = Column(Text, nullable=True)
+    
     manufacturing_model = Column(Enum('self_manufacturing', 'contract_manufacturing', name='manufacturing_model_enum'), nullable=True)
     behavioral_traits = Column(JSON, nullable=True)
-    interview_results = Column(Text, nullable=True)
+
+    plant_size_impact = Column(Enum(
+        'small', 'medium', 'large',
+        name='plant_size_impact_enum'
+    ), nullable=True, comment="Plant Size Impact: small (<50 employees): Cash flow sensitivity, resource constraints, downtime impact, expedited decisions; medium (50-200): Balanced cost/capability concerns, department approvals, scalability focus; large (>200): Complex approval process, enterprise standards, formal documentation, corporate alignment")
+
     status_active = Column(Boolean, nullable=False, server_default=text('true'))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))

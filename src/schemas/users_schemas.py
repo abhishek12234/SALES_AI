@@ -31,6 +31,7 @@ class UserUpdate(BaseModel):
     subscription_id: Optional[str] = None
     status_active: Optional[bool] = None
 
+
 class UserResponse(UserBase):
     user_id: str
     created_at: datetime
@@ -38,6 +39,7 @@ class UserResponse(UserBase):
     user_subscriptions: Optional[list[UserSubscriptionResponse]] = None
     role: Optional[RoleResponse] = None
     status_active: bool
+    is_verified: bool = False
 
     model_config = {
         "from_attributes": True
@@ -45,6 +47,7 @@ class UserResponse(UserBase):
 
 class UserCreate(UserBase):
     password: str
+    google_id: Optional[str] = None
 
 class GoogleAuthModel(BaseModel):
     id_token: str
