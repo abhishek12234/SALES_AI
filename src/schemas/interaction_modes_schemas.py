@@ -12,6 +12,7 @@ class InteractionModeNameEnum(str, Enum):
 class InteractionModeBase(BaseModel):
     name: InteractionModeNameEnum
     description: Optional[str] = None
+    prompt_template: Optional[str] = None
 
 class InteractionModeCreate(InteractionModeBase):
     pass
@@ -20,6 +21,7 @@ class InteractionModeUpdate(BaseModel):
     name: Optional[InteractionModeNameEnum] = None
     description: Optional[str] = None
     status_active: Optional[bool] = None
+    prompt_template: Optional[str] = None
 
 class InteractionModeResponse(InteractionModeBase):
     mode_id: str

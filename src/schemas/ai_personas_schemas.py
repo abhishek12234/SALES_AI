@@ -22,7 +22,7 @@ class AIPersonaBase(BaseModel):
     geography: Optional[str] = None
     manufacturing_model: Optional[ManufacturingModelEnum] = None
     behavioral_traits: Optional[list] = None  # List of dicts: {name, intensity, description}
-    interview_results: Optional[str] = None  # text
+
 
 class AIPersonaCreate(AIPersonaBase):
     pass
@@ -35,7 +35,6 @@ class AIPersonaUpdate(BaseModel):
     geography: Optional[str] = None
     manufacturing_model: Optional[ManufacturingModelEnum] = None
     behavioral_traits: Optional[list] = None
-    interview_results: Optional[str] = None
     status_active: Optional[bool] = None
 
 class AIPersonaResponse(AIPersonaBase):

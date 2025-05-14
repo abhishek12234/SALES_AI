@@ -1869,9 +1869,7 @@ components:
                 type: integer
               description:
                 type: string
-        interview_results:
-          type: string
-          description: Structured Q&A data as text
+
 
     AIPersonaResponse:
       type: object
@@ -1904,9 +1902,7 @@ components:
                 type: integer
               description:
                 type: string
-        interview_results:
-          type: string
-          description: Structured Q&A data as text
+
         status_active:
           type: boolean
         created_at:
@@ -1921,11 +1917,14 @@ components:
       required:
         - name
         - description
+        - prompt_template
       properties:
         name:
           type: string
           enum: [prospecting, sales, closing]
         description:
+          type: string
+        prompt_template:
           type: string
 
     InteractionModeResponse:
@@ -1938,6 +1937,8 @@ components:
           type: string
           enum: [prospecting, sales, closing]
         description:
+          type: string
+        prompt_template:
           type: string
         status_active:
           type: boolean

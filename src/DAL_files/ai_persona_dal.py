@@ -16,17 +16,9 @@ class AIPersonaDAL:
         return result.scalars().all()
 
     async def create_ai_persona(self, persona_data: AIPersonaCreate, db_session: AsyncSession) -> AIPersona:
+        persona_data_dict = persona_data.model_dump()
         # Create a new AI Persona
-        new_persona = AIPersona(
-            name=persona_data.name,
-            industry=persona_data.industry,
-            role=persona_data.role,
-            experience_level=persona_data.experience_level,
-            geography=persona_data.geography,
-            manufacturing_model=persona_data.manufacturing_model,
-            behavioral_traits=persona_data.behavioral_traits,
-            interview_results=persona_data.interview_results,
-        )
+        new_persona = AIPersona(**persona_data_dict)
         db_session.add(new_persona)
         await db_session.commit()
         await db_session.refresh(new_persona)
