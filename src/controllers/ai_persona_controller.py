@@ -109,3 +109,19 @@ async def delete_ai_persona(
             detail="AI Persona not found"
         )
     return None 
+
+@ai_persona_router.delete("/{persona_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[admin_checker])
+async def delete_ai_persona(
+    persona_id: str,
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Delete an AI Persona by ID
+    """
+    success = await ai_persona_service.delete_ai_persona(persona_id, session)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="AI Persona not found"
+        )
+    return None 

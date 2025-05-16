@@ -978,6 +978,25 @@ paths:
         '404':
           description: AI Persona not found
 
+    delete:
+      tags: [AI Personas]
+      summary: Delete AI Persona
+      description: Delete an AI Persona by its ID.
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: AI Persona deleted successfully
+        '404':
+          description: AI Persona not found
+        '400':
+          description: Bad request or error during deletion
+
   /api/v1/ai-personas/industry/{industry}:
     get:
       tags: [AI Personas]
@@ -1074,6 +1093,54 @@ paths:
                 $ref: '#/components/schemas/InteractionModeResponse'
         '404':
           description: Interaction mode not found
+
+  # Chat Routes
+  /api/v1/chat/chat:
+    post:
+      tags:
+        - Chat
+      summary: Chat with AI Persona
+      description: |
+        Send a message to an AI persona and receive a response.
+        The chat uses the interaction mode's prompt template associated with the session,
+        combined with the AI persona's attributes to generate responses.
+        
+        The session must have a valid interaction mode assigned (mode_id).
+        The prompt template from the interaction mode will be used with the following variables:
+        - history: The conversation history
+        - input: The user's message
+        - industry: The AI persona's industry
+        - role: The AI persona's role
+        - experience_level: The AI persona's experience level
+        - geography: The AI persona's geography
+        - manufacturing_model: The AI persona's manufacturing model
+        - behavioral_traits: The AI persona's behavioral traits
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Chat response received successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '400':
+          description: |
+            Bad request. Possible reasons:
+            - Session does not have an interaction mode assigned
+            - Invalid session or persona ID
+        '403':
+          description: User does not have access to the specified chat session
+        '404':
+          description: Chat session, AI persona, or interaction mode not found
+        '500':
+          description: Internal server error while processing the chat request
 
   # Payments Routes
   /api/v1/payments:
@@ -1891,6 +1958,14 @@ components:
         manufacturing_model:
           type: string
           enum: [self_manufacturing, contract_manufacturing]
+        plant_size_impact:
+          type: string
+          enum: [small, medium, large]
+          description: |
+            Plant Size Impact:
+            - small (<50 employees): Cash flow sensitivity, resource constraints, downtime impact, expedited decisions
+            - medium (50-200): Balanced cost/capability concerns, department approvals, scalability focus
+            - large (>200): Complex approval process, enterprise standards, formal documentation, corporate alignment
         behavioral_traits:
           type: array
           items:
@@ -1902,6 +1977,7 @@ components:
                 type: integer
               description:
                 type: string
+        
 
 
     AIPersonaResponse:
@@ -1925,6 +2001,14 @@ components:
         manufacturing_model:
           type: string
           enum: [self_manufacturing, contract_manufacturing]
+        plant_size_impact:
+          type: string
+          enum: [small, medium, large]
+          description: |
+            Plant Size Impact:
+            - small (<50 employees): Cash flow sensitivity, resource constraints, downtime impact, expedited decisions
+            - medium (50-200): Balanced cost/capability concerns, department approvals, scalability focus
+            - large (>200): Complex approval process, enterprise standards, formal documentation, corporate alignment
         behavioral_traits:
           type: array
           items:
@@ -1936,7 +2020,6 @@ components:
                 type: integer
               description:
                 type: string
-
         status_active:
           type: boolean
         created_at:
@@ -2183,44 +2266,53 @@ components:
         token:
           type: string
 
-    ChatWithPersonaRequest:
+    # Chat Schemas
+    ChatRequest:
       type: object
       required:
-        - manufacturing_model
-        - experience_level
-        - role
-        - intraction_mode_id
-        - geography
-        - plant_size_impact
-        - user_input
+        - message
+        - session_id
+        - persona_id
       properties:
-        manufacturing_model:
+        message:
           type: string
-          enum: [self_manufacturing, contract_manufacturing]
-        experience_level:
-          type: string
-          enum: [junior, mid, senior]
-        role:
-          type: string
-          enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
-        intraction_mode_id:
+          description: The message to send to the AI persona
+        session_id:
           type: string
           format: uuid
-        geography:
+          description: |
+            The ID of the chat session.
+            The session must have a valid interaction mode (mode_id) assigned.
+        persona_id:
           type: string
-        plant_size_impact:
-          type: string
-          enum: [small, medium, large]
-        user_input:
-          type: string
-          description: The user's message to the AI persona.
+          format: uuid
+          description: The ID of the AI persona to chat with
 
-    ChatWithPersonaResponse:
+    ChatResponse:
       type: object
+      required:
+        - response
+        - session_id
+        - persona_id
+        - created_at
       properties:
         response:
           type: string
-          description: The AI persona's reply to the user.
+          description: |
+            The AI persona's response, generated using the interaction mode's prompt template
+            and the AI persona's attributes
+        session_id:
+          type: string
+          format: uuid
+          description: The ID of the chat session
+        persona_id:
+          type: string
+          format: uuid
+          description: The ID of the AI persona
+        created_at:
+          type: string
+          format: date-time
+          description: The timestamp when the response was created
 
 tags:
   - name: Authentication
@@ -2245,3 +2337,5 @@ tags:
     description: User feedback on sessions
   - name: User Subscriptions
     description: User subscription management
+  - name: Chat
+    description: AI Persona chat functionality

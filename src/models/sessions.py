@@ -26,3 +26,4 @@ class Session(Base):
     mode = relationship("InteractionMode", back_populates="sessions")
     feedback = relationship("Feedback", back_populates="session")
     performance_reports = relationship("PerformanceReport", back_populates="session")
+    messages = relationship("ChatMessage", back_populates="session", order_by="ChatMessage.created_at")

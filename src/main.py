@@ -2,6 +2,7 @@ from fastapi import FastAPI, status
 from contextlib import asynccontextmanager
 from database import init_db
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from controllers.users_controller import auth_router
 from controllers.roles_controller import roles_router
 from controllers.role_permissions_controller import role_permissions_router
@@ -11,8 +12,8 @@ from controllers.subscriptions_controller import subscriptions_router
 from controllers.interaction_modes_controller import interaction_modes_router
 from controllers.sessions_controller import sessions_router
 from controllers.user_subscriptions_controller import user_subscriptions_router
-
-
+from controllers.ai_persona_chat_controller import chat_router
+import jwt
 import yaml
 import os
 
@@ -29,9 +30,44 @@ app = FastAPI(
     lifespan=life_span
 )
 
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+# Add TrustedHostMiddleware
+app.add_middleware(
+    TrustedHostMiddleware, 
+    allowed_hosts=["*"]  # Allows all hosts
+)
+
 version = "v1"
 
 register_middleware(app)
+
+# Add root endpoint
+@app.get("/")
+async def root():
+    return {
+        "message": "Welcome to Sales AI API",
+        "version": version,
+        "documentation": "/docs",
+        "endpoints": {
+            "auth": f"/api/{version}/auth",
+            "roles": f"/api/{version}/roles",
+            "ai-personas": f"/api/{version}/ai-personas",
+            "role-permissions": f"/api/{version}/role-permissions",
+            "subscriptions": f"/api/{version}/subscriptions",
+            "interaction-modes": f"/api/{version}/interaction-modes",
+            "chat": f"/api/{version}/chat"
+        }
+    }
+
 
 app.include_router(auth_router, prefix="/api/{version}/auth")
 app.include_router(roles_router, prefix="/api/{version}/roles")
@@ -41,6 +77,7 @@ app.include_router(subscriptions_router, prefix="/api/{version}/subscriptions")
 app.include_router(interaction_modes_router, prefix="/api/{version}/interaction-modes")
 app.include_router(sessions_router, prefix="/api/{version}/sessions")
 app.include_router(user_subscriptions_router, prefix="/api/{version}/user-subscriptions")
+app.include_router(chat_router, prefix="/api/{version}/chat")
 
 # Load Swagger YAML - using correct file path
 swagger_file_path = os.path.join(os.path.dirname(__file__), "swagger.yaml")
@@ -59,3 +96,14 @@ try:
     print(f"Swagger documentation loaded from {swagger_file_path}")
 except Exception as e:
     print(f"Error loading Swagger YAML: {e}")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=8000,
+        proxy_headers=True,
+        forwarded_allow_ips="*"
+    )

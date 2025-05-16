@@ -32,7 +32,9 @@ class AIPersonaBase(BaseModel):
     plant_size_impact: Optional[PlantSizeImpactEnum] = None
     geography: Optional[str] = None
     manufacturing_model: Optional[ManufacturingModelEnum] = None
+    plant_size_impact: Optional[PlantSizeImpactEnum] = None
     behavioral_traits: Optional[list] = None  # List of dicts: {name, intensity, description}
+    
 
 
 class AIPersonaCreate(AIPersonaBase):
@@ -46,6 +48,7 @@ class AIPersonaUpdate(BaseModel):
     geography: Optional[str] = None
     manufacturing_model: Optional[ManufacturingModelEnum] = None
     behavioral_traits: Optional[list] = None
+    plant_size_impact: Optional[PlantSizeImpactEnum] = None
     status_active: Optional[bool] = None
     plant_size_impact: Optional[PlantSizeImpactEnum] = None
    

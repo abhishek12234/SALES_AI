@@ -27,3 +27,4 @@ class AIPersona(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     # Relationships
     sessions = relationship("Session", back_populates="persona")
+    messages = relationship("ChatMessage", back_populates="persona")

@@ -32,9 +32,45 @@ class InteractionModeDAL:
 
     async def create_mode(self, mode_data: InteractionModeCreate, db_session: AsyncSession) -> InteractionMode:
         try:
+<<<<<<< Updated upstream
             mode_data=mode_data.model_dump()
             new_mode = InteractionMode(**mode_data)
             
+=======
+            # Set default prompt template if none provided
+            if not mode_data.prompt_template:
+                mode_data.prompt_template = """You are an AI sales assistant with the following characteristics:
+
+Industry: {industry}
+{industry_details}
+
+Role: {role}
+{role_details}
+
+Experience Level: {experience_level}
+{experience_level_details}
+
+Geography: {geography}
+{geography_details}
+
+Manufacturing Model: {manufacturing_model}
+{manufacturing_model_details}
+
+Plant Size Impact: {plant_size_impact}
+Behavioral Traits: {behavioral_traits}
+
+Previous conversation:
+{history}
+
+Human: {input}
+AI: Let me help you with that."""
+
+            new_mode = InteractionMode(
+                name=mode_data.name,
+                description=mode_data.description,
+                prompt_template=mode_data.prompt_template
+            )
+>>>>>>> Stashed changes
             db_session.add(new_mode)
             await db_session.commit()
             await db_session.refresh(new_mode)
