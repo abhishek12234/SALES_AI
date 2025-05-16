@@ -32,10 +32,9 @@ class InteractionModeDAL:
 
     async def create_mode(self, mode_data: InteractionModeCreate, db_session: AsyncSession) -> InteractionMode:
         try:
-            new_mode = InteractionMode(
-                name=mode_data.name,
-                description=mode_data.description,
-            )
+            mode_data=mode_data.model_dump()
+            new_mode = InteractionMode(**mode_data)
+            
             db_session.add(new_mode)
             await db_session.commit()
             await db_session.refresh(new_mode)

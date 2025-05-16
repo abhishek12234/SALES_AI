@@ -22,14 +22,14 @@ class SessionUpdate(BaseModel):
     persona_id: Optional[str] = None
     mode_id: Optional[str] = None
     end_time: Optional[datetime] = None
-    duration: Optional[str] = None
+    duration: Optional[int] = None
     status: Optional[SessionStatusEnum] = None
 
 class SessionResponse(SessionBase):
     session_id: str
     start_time: datetime
     end_time: Optional[datetime] = None
-    duration: Optional[str] = None  # interval as string
+    duration: Optional[int] = None  # interval as string
     status: SessionStatusEnum
     created_at: datetime
     updated_at: datetime

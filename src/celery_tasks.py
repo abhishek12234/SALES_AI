@@ -1,5 +1,5 @@
 from celery import Celery
-from src.mail import mail, create_message
+from mail import mail, create_message
 from asgiref.sync import async_to_sync
 
 c_app = Celery()

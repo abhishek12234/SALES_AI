@@ -572,17 +572,18 @@ paths:
                   $ref: '#/components/schemas/RolePermissionResponse'
 
   # Sessions Routes
-  /api/v1/sessions:
+  /api/v1/sessions/{persona_id}:
     post:
       tags: [Sessions]
       summary: Create a new session
-      description: Create a new session in the system.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SessionCreate'
+      description: Create a new session using only the persona_id from the path. The user_id is taken from the authenticated user.
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         '201':
           description: Session created successfully
@@ -591,7 +592,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionResponse'
         '400':
-          description: Invalid session data
+          description: Invalid persona_id or failed to create session
 
   /api/v1/sessions/{session_id}:
     get:
@@ -1415,6 +1416,37 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserSubscriptionResponse'
 
+  # AI Persona Chat Routes
+  /api/v1/ai-persona-chat/chat/{session_id}:
+    post:
+      tags: [AI Persona Chat]
+      summary: Chat with AI Persona
+      description: Initiate or continue a chat session with an AI persona for a specific session.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatWithPersonaRequest'
+      responses:
+        '200':
+          description: AI persona chat response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatWithPersonaResponse'
+        '400':
+          description: Invalid request data
+        '404':
+          description: Session not found
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1850,6 +1882,7 @@ components:
           type: string
         role:
           type: string
+          enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
         experience_level:
           type: string
           enum: [junior, mid, senior]
@@ -1883,6 +1916,7 @@ components:
           type: string
         role:
           type: string
+          enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
         experience_level:
           type: string
           enum: [junior, mid, senior]
@@ -2148,6 +2182,45 @@ components:
               type: string
         token:
           type: string
+
+    ChatWithPersonaRequest:
+      type: object
+      required:
+        - manufacturing_model
+        - experience_level
+        - role
+        - intraction_mode_id
+        - geography
+        - plant_size_impact
+        - user_input
+      properties:
+        manufacturing_model:
+          type: string
+          enum: [self_manufacturing, contract_manufacturing]
+        experience_level:
+          type: string
+          enum: [junior, mid, senior]
+        role:
+          type: string
+          enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
+        intraction_mode_id:
+          type: string
+          format: uuid
+        geography:
+          type: string
+        plant_size_impact:
+          type: string
+          enum: [small, medium, large]
+        user_input:
+          type: string
+          description: The user's message to the AI persona.
+
+    ChatWithPersonaResponse:
+      type: object
+      properties:
+        response:
+          type: string
+          description: The AI persona's reply to the user.
 
 tags:
   - name: Authentication

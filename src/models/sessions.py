@@ -15,8 +15,8 @@ class Session(Base):
     mode_id = Column(String(36), ForeignKey('interaction_modes.mode_id'), nullable=True)
     start_time = Column(TIMESTAMP, nullable=False)
     end_time = Column(TIMESTAMP, nullable=True)
-    duration = Column(String(50), nullable=True)  # Changed from Integer to String for interval, now with length
-    status = Column(Enum('active', 'completed', 'abandoned', name='session_status_enum'), nullable=False, server_default=text("'active'"))
+    duration = Column(Integer, nullable=False, server_default=text("0"))  # Changed from Integer to String for interval, now with length
+    status = Column(Enum('active', 'completed', 'abandoned', name='session_status_enum'), nullable=False, server_default=text("'abandoned'"))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
 

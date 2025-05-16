@@ -36,7 +36,7 @@ class RolePermissionDAL:
         permission = await self.get_permission_by_id(permission_id, db_session)
         if not permission:
             return None
-        for key, value in permission_data.dict(exclude_unset=True).items():
+        for key, value in permission_data.model_dump(exclude_unset=True).items():
             setattr(permission, key, value)
         await db_session.flush()
         return permission

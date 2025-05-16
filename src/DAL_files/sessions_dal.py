@@ -26,30 +26,22 @@ class SessionDAL:
         result = await db_session.execute(select(Session))
         return result.scalars().all()
 
-    async def create_session(self, session_data: SessionCreate, db_session: AsyncSession) -> Session:
+    async def create_session(self, user_id: str, persona_id: str, db_session: AsyncSession) -> Session:
         try:
             
-            # Validate user_id
-           
-            user = await users_service.get_user_by_id(session_data.user_id, db_session)
-            if not user:
-                raise HTTPException(status_code=404, detail='User not found')
-            # Validate persona_id if provided
-            
-            persona_id = session_data.persona_id
-            if persona_id is not None:
-                persona = await persona_service.get_ai_persona_by_id(persona_id, db_session)
-                if not persona:
-                    raise HTTPException(status_code=404, detail='Persona not found')
-            # Validate mode_id if provided
-       
-            mode_id = session_data.mode_id
-            if mode_id is not None:
-                mode = await mode_service.get_mode_by_id(mode_id, db_session)
-                if not mode:
-                    raise HTTPException(status_code=404, detail='Interaction mode not found')
+            persona = await persona_service.get_ai_persona_by_id(persona_id, db_session)
+            if not persona:
+                raise HTTPException(status_code=404, detail='Persona not found')
+    
+            mode = await mode_service.get_mode_by_name("closing", db_session)
+            if not mode:
+                raise HTTPException(status_code=404, detail='Interaction mode not found')
                 
-            data = session_data.model_dump()
+            data = {
+                "user_id": user_id,
+                "persona_id": persona_id,
+                "mode_id": mode.mode_id
+            }
             new_session = Session(**data)
             new_session.start_time = datetime.now(timezone.utc)
             db_session.add(new_session)
@@ -62,11 +54,10 @@ class SessionDAL:
 
     async def get_session_by_id(self, session_id: str, db_session: AsyncSession) -> Session:
         # Check if the session exists
-        exists = await self.session_exists(session_id, db_session)
-        if not exists:
-            return None
 
-        return await db_session.get(Session, session_id)
+        result = await db_session.execute(select(Session).where(Session.session_id == session_id))
+        print(result,"result------------")
+        return result.scalar_one_or_none()
 
     async def get_sessions_by_user_id(self, user_id: str, db_session: AsyncSession) -> list[Session]:
         result = await db_session.execute(
@@ -86,17 +77,15 @@ class SessionDAL:
         )
         return result.scalars().all()
 
-    async def update_session(self, session_id: str, session_data: SessionUpdate, db_session: AsyncSession) -> Session:
-        session = await self.get_session_by_id(session_id, db_session)
-        if not session:
-            return None
+    async def update_session(self,user_session, session_data: SessionUpdate, db_session: AsyncSession) -> Session:
+    
             
         try:
-            for key, value in session_data.model_dump(exclude_unset=True).items():
-                setattr(session, key, value)
+            for key, value in session_data.items():
+                setattr(user_session, key, value)
             await db_session.commit()
-            await db_session.refresh(session)
-            return session
+            await db_session.refresh(user_session)
+            return user_session
         except Exception as e:
             await db_session.rollback()
             raise HTTPException(status_code=400, detail=f"Failed to update session: {str(e)}")

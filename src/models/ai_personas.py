@@ -10,7 +10,7 @@ class AIPersona(Base):
     persona_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(100), nullable=False, unique=True)
     industry = Column(String(100), nullable=True)
-    role = Column(String(100), nullable=True)
+    role = Column(Enum('quality_manager', 'production_manager', 'maintenance_manager', 'plant_manager', name='role_enum'), nullable=True)
     experience_level = Column(Enum('junior', 'mid', 'senior', name='experience_level_enum'), nullable=True)
     geography = Column(Text, nullable=True)
     
