@@ -2186,6 +2186,7 @@ components:
     ChatWithPersonaRequest:
       type: object
       required:
+        - industry
         - manufacturing_model
         - experience_level
         - role
@@ -2194,6 +2195,8 @@ components:
         - plant_size_impact
         - user_input
       properties:
+        industry:
+          type: string
         manufacturing_model:
           type: string
           enum: [self_manufacturing, contract_manufacturing]
