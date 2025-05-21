@@ -572,18 +572,17 @@ paths:
                   $ref: '#/components/schemas/RolePermissionResponse'
 
   # Sessions Routes
-  /api/v1/sessions/{persona_id}:
+  /api/v1/sessions/:
     post:
       tags: [Sessions]
       summary: Create a new session
-      description: Create a new session using only the persona_id from the path. The user_id is taken from the authenticated user.
-      parameters:
-        - name: persona_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+      description: Create a new session using persona data. The user_id is taken from the authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonaData'
       responses:
         '201':
           description: Session created successfully
@@ -592,7 +591,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionResponse'
         '400':
-          description: Invalid persona_id or failed to create session
+          description: Invalid persona data or failed to create session
 
   /api/v1/sessions/{session_id}:
     get:
@@ -1447,6 +1446,394 @@ paths:
         '404':
           description: Session not found
 
+  # AI Roles Routes
+  /api/v1/ai-roles/:
+    post:
+      tags: [AI Roles]
+      summary: Create a new AI role
+      description: Create a new AI role in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIRoleCreate'
+      responses:
+        '201':
+          description: AI role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIRoleResponse'
+    get:
+      tags: [AI Roles]
+      summary: Get all AI roles
+      description: Retrieve all AI roles in the system.
+      responses:
+        '200':
+          description: AI roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AIRoleResponse'
+
+  /api/v1/ai-roles/{ai_role_id}:
+    get:
+      tags: [AI Roles]
+      summary: Get AI role by ID
+      description: Retrieve an AI role by its unique ID.
+      parameters:
+        - name: ai_role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: AI role retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIRoleResponse'
+        '404':
+          description: AI role not found
+    put:
+      tags: [AI Roles]
+      summary: Update AI role
+      description: Update an AI role by its unique ID.
+      parameters:
+        - name: ai_role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIRoleUpdate'
+      responses:
+        '200':
+          description: AI role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIRoleResponse'
+        '404':
+          description: AI role not found
+    delete:
+      tags: [AI Roles]
+      summary: Delete AI role
+      description: Delete an AI role by its unique ID.
+      parameters:
+        - name: ai_role_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: AI role deleted successfully
+        '404':
+          description: AI role not found
+
+  # Industries Routes
+  /api/v1/industries/:
+    post:
+      tags: [Industries]
+      summary: Create a new industry
+      description: Create a new industry in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndustryCreate'
+      responses:
+        '201':
+          description: Industry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndustryResponse'
+    get:
+      tags: [Industries]
+      summary: Get all industries
+      description: Retrieve all industries in the system.
+      responses:
+        '200':
+          description: Industries retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IndustryResponse'
+
+  /api/v1/industries/{industry_id}:
+    get:
+      tags: [Industries]
+      summary: Get industry by ID
+      description: Retrieve an industry by its unique ID.
+      parameters:
+        - name: industry_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Industry retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndustryResponse'
+        '404':
+          description: Industry not found
+    put:
+      tags: [Industries]
+      summary: Update industry
+      description: Update an industry by its unique ID.
+      parameters:
+        - name: industry_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndustryUpdate'
+      responses:
+        '200':
+          description: Industry updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IndustryResponse'
+        '404':
+          description: Industry not found
+    delete:
+      tags: [Industries]
+      summary: Delete industry
+      description: Delete an industry by its unique ID.
+      parameters:
+        - name: industry_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Industry deleted successfully
+        '404':
+          description: Industry not found
+
+  # Manufacturing Models Routes
+  /api/v1/manufacturing-models/:
+    post:
+      tags: [Manufacturing Models]
+      summary: Create a new manufacturing model
+      description: Create a new manufacturing model in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManufacturingModelCreate'
+      responses:
+        '201':
+          description: Manufacturing model created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManufacturingModelResponse'
+    get:
+      tags: [Manufacturing Models]
+      summary: Get all manufacturing models
+      description: Retrieve all manufacturing models in the system.
+      responses:
+        '200':
+          description: Manufacturing models retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ManufacturingModelResponse'
+
+  /api/v1/manufacturing-models/{manufacturing_model_id}:
+    get:
+      tags: [Manufacturing Models]
+      summary: Get manufacturing model by ID
+      description: Retrieve a manufacturing model by its unique ID.
+      parameters:
+        - name: manufacturing_model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Manufacturing model retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManufacturingModelResponse'
+        '404':
+          description: Manufacturing model not found
+    put:
+      tags: [Manufacturing Models]
+      summary: Update manufacturing model
+      description: Update a manufacturing model by its unique ID.
+      parameters:
+        - name: manufacturing_model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManufacturingModelUpdate'
+      responses:
+        '200':
+          description: Manufacturing model updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManufacturingModelResponse'
+        '404':
+          description: Manufacturing model not found
+    delete:
+      tags: [Manufacturing Models]
+      summary: Delete manufacturing model
+      description: Delete a manufacturing model by its unique ID.
+      parameters:
+        - name: manufacturing_model_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Manufacturing model deleted successfully
+        '404':
+          description: Manufacturing model not found
+
+  # Plant Size Impacts Routes
+  /api/v1/plant-size-impacts/:
+    post:
+      tags: [Plant Size Impacts]
+      summary: Create a new plant size impact
+      description: Create a new plant size impact in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlantSizeImpactCreate'
+      responses:
+        '201':
+          description: Plant size impact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantSizeImpactResponse'
+    get:
+      tags: [Plant Size Impacts]
+      summary: Get all plant size impacts
+      description: Retrieve all plant size impacts in the system.
+      responses:
+        '200':
+          description: Plant size impacts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlantSizeImpactResponse'
+
+  /api/v1/plant-size-impacts/{plant_size_impact_id}:
+    get:
+      tags: [Plant Size Impacts]
+      summary: Get plant size impact by ID
+      description: Retrieve a plant size impact by its unique ID.
+      parameters:
+        - name: plant_size_impact_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Plant size impact retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantSizeImpactResponse'
+        '404':
+          description: Plant size impact not found
+    put:
+      tags: [Plant Size Impacts]
+      summary: Update plant size impact
+      description: Update a plant size impact by its unique ID.
+      parameters:
+        - name: plant_size_impact_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlantSizeImpactUpdate'
+      responses:
+        '200':
+          description: Plant size impact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlantSizeImpactResponse'
+        '404':
+          description: Plant size impact not found
+    delete:
+      tags: [Plant Size Impacts]
+      summary: Delete plant size impact
+      description: Delete a plant size impact by its unique ID.
+      parameters:
+        - name: plant_size_impact_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Plant size impact deleted successfully
+        '404':
+          description: Plant size impact not found
+
 components:
   securitySchemes:
     BearerAuth:
@@ -1886,6 +2273,9 @@ components:
         experience_level:
           type: string
           enum: [junior, mid, senior]
+        plant_size_impact:
+          type: string
+          enum: [small, medium, large]
         geography:
           type: string
         manufacturing_model:
@@ -2190,7 +2580,6 @@ components:
         - manufacturing_model
         - experience_level
         - role
-        - intraction_mode_id
         - geography
         - plant_size_impact
         - user_input
@@ -2206,9 +2595,6 @@ components:
         role:
           type: string
           enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
-        intraction_mode_id:
-          type: string
-          format: uuid
         geography:
           type: string
         plant_size_impact:
@@ -2224,6 +2610,151 @@ components:
         response:
           type: string
           description: The AI persona's reply to the user.
+
+    PersonaData:
+      type: object
+      required:
+        - name
+        - industry
+        - role
+        - experience_level
+        - plant_size_impact
+        - geography
+        - manufacturing_model
+      properties:
+        name:
+          type: string
+        industry:
+          type: string
+        role:
+          type: string
+        experience_level:
+          type: string
+        plant_size_impact:
+          type: string
+        geography:
+          type: string
+        manufacturing_model:
+          type: string
+
+    AIRoleBase:
+      type: object
+      properties:
+        name:
+          type: string
+
+    AIRoleCreate:
+      allOf:
+        - $ref: '#/components/schemas/AIRoleBase'
+
+    AIRoleUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+
+    AIRoleResponse:
+      allOf:
+        - $ref: '#/components/schemas/AIRoleBase'
+        - type: object
+          properties:
+            ai_role_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    IndustryBase:
+      type: object
+      properties:
+        name:
+          type: string
+    IndustryCreate:
+      allOf:
+        - $ref: '#/components/schemas/IndustryBase'
+    IndustryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+    IndustryResponse:
+      allOf:
+        - $ref: '#/components/schemas/IndustryBase'
+        - type: object
+          properties:
+            industry_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    ManufacturingModelBase:
+      type: object
+      properties:
+        name:
+          type: string
+    ManufacturingModelCreate:
+      allOf:
+        - $ref: '#/components/schemas/ManufacturingModelBase'
+    ManufacturingModelUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+    ManufacturingModelResponse:
+      allOf:
+        - $ref: '#/components/schemas/ManufacturingModelBase'
+        - type: object
+          properties:
+            manufacturing_model_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    PlantSizeImpactBase:
+      type: object
+      properties:
+        name:
+          type: string
+    PlantSizeImpactCreate:
+      allOf:
+        - $ref: '#/components/schemas/PlantSizeImpactBase'
+    PlantSizeImpactUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+    PlantSizeImpactResponse:
+      allOf:
+        - $ref: '#/components/schemas/PlantSizeImpactBase'
+        - type: object
+          properties:
+            plant_size_impact_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
 
 tags:
   - name: Authentication

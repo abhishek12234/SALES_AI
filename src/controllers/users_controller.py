@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-from datetime import timedelta
+from datetime import timedelta, datetime
 from schemas.users_schemas import UserCreate, UserUpdate, UserLogin, UserBase,UserResponse, GoogleAuthModel
 from database import get_session  # Adjust this import based on your project structure
 from DAL_files.users_dal import UserDAL
-from utils import verify_password, create_access_token
+from utils import verify_password, create_access_token, generate_passwd_hash
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from dependencies import RoleChecker, get_current_user, AccessTokenBearer
@@ -36,6 +36,14 @@ class SendOtpRequest(BaseModel):
 class VerifyOtpRequest(BaseModel):
     email: EmailStr
     otp_code: str
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    email: EmailStr
+    otp_code: str
+    new_password: str
 
 @auth_router.get("/all-users", response_model=list[UserResponse], dependencies=[role_checker])
 async def get_all_users(session: AsyncSession = Depends(get_session)):
@@ -124,8 +132,6 @@ async def create_user(user: UserCreate,session: AsyncSession = Depends(get_sessi
     if not created_user:
         raise HTTPException(status_code=400, detail="User creation failed")
     
-
-    
     user_subscription = await user_subscriptions_services.create_user_subscription(UserSubscriptionCreate(user_id=created_user.user_id, subscription_id=subscription.subscription_id) , session)
     if not user_subscription:
         raise HTTPException(status_code=400, detail="User subscription creation failed")
@@ -140,8 +146,14 @@ async def create_user(user: UserCreate,session: AsyncSession = Depends(get_sessi
             "role_id": created_user.role_id
         }
     )
+
+    # Send OTP to user's email
+    otp_code = user_service.generate_otp()
+    await user_service.save_otp(created_user.email, otp_code, expiry_minutes=10, db_session=session)
+    await user_service.send_otp_via_email(created_user.email, otp_code)
+    
     return {
-        "message": "User created successfully",
+        "message": "User created successfully. OTP sent to email.",
         "user": {
             "user_id": created_user.user_id,
             "email": created_user.email,
@@ -266,6 +278,34 @@ async def send_otp(request: SendOtpRequest, session: AsyncSession = Depends(get_
 async def verify_otp(request: VerifyOtpRequest, session: AsyncSession = Depends(get_session)):
     user = await user_service.verify_otp(request.email, request.otp_code, session)
     return {"message": "User verified successfully", "is_verified": user.is_verified}
+
+@auth_router.post("/password-reset/request")
+async def request_password_reset(request: PasswordResetRequest, session: AsyncSession = Depends(get_session)):
+    user = await user_service.get_user_by_email(request.email, session)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    otp_code = user_service.generate_otp()
+    await user_service.save_otp(request.email, otp_code, expiry_minutes=10, db_session=session)
+    await user_service.send_otp_via_email(request.email, otp_code)
+    return {"message": "Password reset OTP sent to email"}
+
+@auth_router.post("/password-reset/confirm")
+async def confirm_password_reset(data: PasswordResetConfirm, session: AsyncSession = Depends(get_session)):
+    user = await user_service.get_user_by_email(data.email, session)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    # Verify OTP
+    if user.otp_code != data.otp_code:
+        raise HTTPException(status_code=400, detail="Invalid OTP code")
+    if user.otp_expiry < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="OTP expired")
+    # Update password
+    user.password_hash = generate_passwd_hash(data.new_password)
+    user.otp_code = None
+    user.otp_expiry = None
+    await session.commit()
+    await session.refresh(user)
+    return {"message": "Password reset successful"}
 
 
 

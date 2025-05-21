@@ -37,3 +37,13 @@ class SessionResponse(SessionBase):
     model_config = {
         "from_attributes": True
     }
+
+class PersonaData(BaseModel):
+    name: str
+    industry: str
+    role: str
+    experience_level: str
+    plant_size_impact: str
+    geography: str
+    manufacturing_model: str
+    

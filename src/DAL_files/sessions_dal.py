@@ -12,6 +12,7 @@ from models.interaction_modes import InteractionMode
 from .users_dal import UserDAL
 from .ai_persona_dal import AIPersonaDAL
 from .interaction_modes_dal import InteractionModeDAL
+from schemas.sessions_schemas import PersonaData
 
 users_service = UserDAL()
 persona_service = AIPersonaDAL()
@@ -26,20 +27,18 @@ class SessionDAL:
         result = await db_session.execute(select(Session))
         return result.scalars().all()
 
-    async def create_session(self, user_id: str, persona_id: str, db_session: AsyncSession) -> Session:
+    async def create_session(self, user_id: str, persona_data: PersonaData, db_session: AsyncSession) -> Session:
         try:
             
-            persona = await persona_service.get_ai_persona_by_id(persona_id, db_session)
-            if not persona:
-                raise HTTPException(status_code=404, detail='Persona not found')
-    
+
+            persona_data=persona_data.model_dump()
             mode = await mode_service.get_mode_by_name("closing", db_session)
             if not mode:
                 raise HTTPException(status_code=404, detail='Interaction mode not found')
                 
             data = {
                 "user_id": user_id,
-                "persona_id": persona_id,
+                "ai_persona": persona_data,
                 "mode_id": mode.mode_id
             }
             new_session = Session(**data)
@@ -102,3 +101,13 @@ class SessionDAL:
         except Exception as e:
             await db_session.rollback()
             raise HTTPException(status_code=400, detail=f"Failed to delete session: {str(e)}")
+
+    async def get_session_by_id_and_user_id(self, session_id: str, user_id: str, db_session: AsyncSession) -> Session:
+        """
+        Retrieve a session by both session_id and user_id.
+        Returns the Session object if found, otherwise None.
+        """
+        result = await db_session.execute(
+            select(Session).where(Session.session_id == session_id, Session.user_id == user_id)
+        )
+        return result.scalar_one_or_none()

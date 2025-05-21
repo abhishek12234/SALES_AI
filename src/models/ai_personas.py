@@ -1,29 +1,44 @@
-from sqlalchemy import Column, String, TIMESTAMP, Text, Enum, text, Boolean
+from sqlalchemy import Column, String, TIMESTAMP, Text, Enum, text, Boolean, ForeignKey, Index
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.mysql import JSON
+from sqlalchemy.dialects.postgresql import JSONB
 from database import Base
 import uuid
 
+class ExperienceLevelEnum(str, Enum):
+    junior = "junior"
+    mid = "mid"
+    senior = "senior"
+
 class AIPersona(Base):
     __tablename__ = 'ai_personas'
+    __table_args__ = (
+        Index(
+            'ix_ai_persona_lookup',
+            'industry_id',
+            'ai_role_id',
+            'experience_level',
+            'geography',
+            'plant_size_impact_id',
+            'manufacturing_model_id'
+        ),
+    )
 
-    persona_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String(100), nullable=False, unique=True)
-    industry = Column(String(100), nullable=True)
-    role = Column(Enum('quality_manager', 'production_manager', 'maintenance_manager', 'plant_manager', name='role_enum'), nullable=True)
-    experience_level = Column(Enum('junior', 'mid', 'senior', name='experience_level_enum'), nullable=True)
+    persona_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    name = Column(String(100), nullable=False)
+    industry_id = Column(String(36), ForeignKey('industries.industry_id'), nullable=False)
+    ai_role_id = Column(String(36), ForeignKey('ai_roles.ai_role_id'), nullable=False)
+    experience_level = Column(Enum("junior", "mid", "senior"), nullable=False)
     geography = Column(Text, nullable=True)
-    
-    manufacturing_model = Column(Enum('self_manufacturing', 'contract_manufacturing', name='manufacturing_model_enum'), nullable=True)
-    behavioral_traits = Column(JSON, nullable=True)
-
-    plant_size_impact = Column(Enum(
-        'small', 'medium', 'large',
-        name='plant_size_impact_enum'
-    ), nullable=True, comment="Plant Size Impact: small (<50 employees): Cash flow sensitivity, resource constraints, downtime impact, expedited decisions; medium (50-200): Balanced cost/capability concerns, department approvals, scalability focus; large (>200): Complex approval process, enterprise standards, formal documentation, corporate alignment")
-
+    plant_size_impact_id = Column(String(36), ForeignKey('plant_size_impacts.plant_size_impact_id'), nullable=False)
+    manufacturing_model_id = Column(String(36), ForeignKey('manufacturing_models.manufacturing_model_id'), nullable=False)
+    behavioral_traits = Column(JSONB, nullable=True)
     status_active = Column(Boolean, nullable=False, server_default=text('true'))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
+
     # Relationships
+    industry = relationship("Industry")
+    ai_role = relationship("AIRole")
+    plant_size_impact = relationship("PlantSizeImpact")
+    manufacturing_model = relationship("ManufacturingModel")
     sessions = relationship("Session", back_populates="persona")

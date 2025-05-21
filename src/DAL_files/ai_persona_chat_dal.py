@@ -119,7 +119,9 @@ class AIPersonaChatDAL:
 
         # Prepare the prompt template
         system_template = persona_prompt.format(
-            industry_details=industry_details,
+            industry_details=plant_adaptation_guidelines["Industry Details"][persona_data.industry],
+            industry=persona_data.industry,
+            experience_level=persona_data.experience_level,
             role_details=plant_adaptation_guidelines["Role"][persona_data.role],
             manufacturing_model_details=plant_adaptation_guidelines["Manufacturing Model Details"][persona_data.manufacturing_model],
             plant_size_considerations=plant_adaptation_guidelines["Plant Size Considerations"][persona_data.plant_size_impact],

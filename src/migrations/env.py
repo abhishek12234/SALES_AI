@@ -16,7 +16,10 @@ from models.interaction_modes import InteractionMode
 from models.performance_reports import PerformanceReport
 from models.payments import Payment
 from models.user_subscriptions import UserSubscription
-
+from models.ai_roles import AIRole
+from models.manufacturing_models import ManufacturingModel
+from models.plant_size_impacts import PlantSizeImpact
+from models.industries import Industry
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

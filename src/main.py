@@ -12,7 +12,9 @@ from controllers.interaction_modes_controller import interaction_modes_router
 from controllers.sessions_controller import sessions_router
 from controllers.user_subscriptions_controller import user_subscriptions_router
 from controllers.ai_persona_chat_controller import ai_persona_chat_router
-
+from controllers.interaction_mode_ai_roles_controller import interaction_mode_ai_roles_router
+from controllers.interaction_mode_manufacturing_models_controller import interaction_mode_manufacturing_models_router
+from controllers.interaction_mode_plant_size_impacts_controller import interaction_mode_plant_size_impacts_router
 
 import yaml
 import os
@@ -43,6 +45,9 @@ app.include_router(interaction_modes_router, prefix="/api/{version}/interaction-
 app.include_router(sessions_router, prefix="/api/{version}/sessions")
 app.include_router(user_subscriptions_router, prefix="/api/{version}/user-subscriptions")
 app.include_router(ai_persona_chat_router, prefix="/api/{version}/ai-persona-chat")
+app.include_router(interaction_mode_ai_roles_router, prefix="/api/{version}/interaction-mode-ai-roles")
+app.include_router(interaction_mode_manufacturing_models_router, prefix="/api/{version}/interaction-mode-manufacturing-models")
+app.include_router(interaction_mode_plant_size_impacts_router, prefix="/api/{version}/interaction-mode-plant-size-impacts")
 
 # Load Swagger YAML - using correct file path
 swagger_file_path = os.path.join(os.path.dirname(__file__), "swagger.yaml")

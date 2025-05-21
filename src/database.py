@@ -31,6 +31,10 @@ async def init_db():
     from models.performance_reports import PerformanceReport
     from models.payments import Payment
     from models.user_subscriptions import UserSubscription
+    from models.ai_roles import AIRole
+    from models.manufacturing_models import ManufacturingModel
+    from models.plant_size_impacts import PlantSizeImpact
+    from models.industries import Industry  
 
     async with async_engine.begin() as conn:
 

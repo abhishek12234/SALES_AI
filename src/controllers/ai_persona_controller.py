@@ -19,7 +19,7 @@ sales_checker = Depends(RoleChecker([RoleEnum.sales_person, RoleEnum.manager, Ro
 ai_persona_router = APIRouter()
 ai_persona_service = AIPersonaDAL()
 
-@ai_persona_router.post("/", response_model=AIPersonaResponse, status_code=status.HTTP_201_CREATED, dependencies=[sales_checker])
+@ai_persona_router.post("/", response_model=AIPersonaResponse, status_code=status.HTTP_201_CREATED, dependencies=[admin_checker])
 async def create_ai_persona(
     persona_data: AIPersonaCreate,
     session: AsyncSession = Depends(get_session)
