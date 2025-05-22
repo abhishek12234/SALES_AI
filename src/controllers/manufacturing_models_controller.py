@@ -5,7 +5,10 @@ from database import get_session
 from DAL_files.manufacturing_models_dal import ManufacturingModelDAL
 from dependencies import RoleChecker, get_current_user
 from schemas.roles_schemas import RoleEnum
+import logging
+from sqlalchemy.exc import IntegrityError
 
+logger = logging.getLogger("manufacturing_models")
 super_admin_checker = Depends(RoleChecker([RoleEnum.super_admin]))
 
 manufacturing_models_router = APIRouter()
@@ -13,8 +16,18 @@ service = ManufacturingModelDAL()
 
 @manufacturing_models_router.post("/", response_model=ManufacturingModelResponse, status_code=status.HTTP_201_CREATED, dependencies=[super_admin_checker])
 async def create(model: ManufacturingModelCreate, session: AsyncSession = Depends(get_session)):
-    created = await service.create_manufacturing_model(model, session)
-    return created
+    try:
+        created = await service.create_manufacturing_model(model, session)
+        return created
+    except IntegrityError as e:
+        logger.exception("Integrity error while creating manufacturing model")
+        if "Duplicate entry" in str(e.orig):
+            raise HTTPException(status_code=400, detail="Manufacturing model with this name already exists.")
+        else:
+            raise HTTPException(status_code=400, detail="Database integrity error.")
+    except Exception as e:
+        logger.exception("Failed to create manufacturing model")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @manufacturing_models_router.get("/{model_id}", response_model=ManufacturingModelResponse, status_code=status.HTTP_200_OK, dependencies=[super_admin_checker])
 async def get_by_id(model_id: str, session: AsyncSession = Depends(get_session)):

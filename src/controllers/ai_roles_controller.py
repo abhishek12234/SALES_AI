@@ -3,13 +3,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.ai_roles_schemas import AIRoleCreate, AIRoleUpdate, AIRoleResponse
 from database import get_session
 from DAL_files.ai_roles_dal import AIRoleDAL
+import logging
+from sqlalchemy.exc import IntegrityError
 
 ai_role_router = APIRouter()
 ai_role_service = AIRoleDAL()
+logger = logging.getLogger("ai_roles")
 
 @ai_role_router.post("/", response_model=AIRoleResponse, status_code=status.HTTP_201_CREATED)
 async def create_ai_role(role: AIRoleCreate, session: AsyncSession = Depends(get_session)):
-    return await ai_role_service.create_ai_role(role, session)
+    try:
+        return await ai_role_service.create_ai_role(role, session)
+    except IntegrityError as e:
+        logger.exception("Integrity error while creating ai role")
+        if "Duplicate entry" in str(e.orig):
+            raise HTTPException(status_code=400, detail="AI Role with this name already exists.")
+        else:
+            raise HTTPException(status_code=400, detail="Database integrity error.")
+    except Exception as e:
+        logger.exception("Failed to create ai role")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @ai_role_router.get("/{ai_role_id}", response_model=AIRoleResponse)
 async def get_ai_role_by_id(ai_role_id: str, session: AsyncSession = Depends(get_session)):

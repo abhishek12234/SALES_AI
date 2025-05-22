@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, TIMESTAMP, ForeignKey, text, UniqueConstraint, Text
 from database import Base
 import uuid
+from sqlalchemy.orm import relationship
 
 class InteractionModeManufacturingModel(Base):
     __tablename__ = 'interaction_mode_manufacturing_models'
@@ -14,3 +15,7 @@ class InteractionModeManufacturingModel(Base):
     prompt_template = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()")) 
+
+    #relationship
+    interaction_mode = relationship("InteractionMode", back_populates="interaction_manufacturing_models", lazy="selectin" )
+    manufacturing_model = relationship("ManufacturingModel", back_populates="interaction_manufacturing_models", lazy="selectin")

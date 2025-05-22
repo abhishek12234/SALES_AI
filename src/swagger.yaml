@@ -2936,6 +2936,8 @@ components:
       properties:
         name:
           type: string
+        details:
+          type: string
     IndustryCreate:
       allOf:
         - $ref: '#/components/schemas/IndustryBase'
@@ -2943,6 +2945,9 @@ components:
       type: object
       properties:
         name:
+          type: string
+          nullable: true
+        details:
           type: string
           nullable: true
     IndustryResponse:

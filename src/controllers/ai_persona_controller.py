@@ -10,6 +10,10 @@ from schemas.ai_personas_schemas import (
 from database import get_session
 from dependencies import RoleChecker, get_current_user
 from schemas.roles_schemas import RoleEnum
+from sqlalchemy.exc import IntegrityError
+import logging
+
+logger = logging.getLogger("ai_persona")
 
 # Create different role checkers for different access levels
 admin_checker = Depends(RoleChecker([RoleEnum.admin, RoleEnum.super_admin]))
@@ -24,10 +28,23 @@ async def create_ai_persona(
     persona_data: AIPersonaCreate,
     session: AsyncSession = Depends(get_session)
 ):
-
-    new_persona = await ai_persona_service.create_ai_persona(persona_data, session)
-    return new_persona
-    
+    try:    
+        new_persona = await ai_persona_service.create_ai_persona(persona_data, session)
+        return new_persona
+    except IntegrityError as e:
+        logger.exception("Integrity error while creating ai persona")
+        
+        if "Duplicate entry" in str(e.orig):
+            raise HTTPException(status_code=400, detail="AI Persona with this name already exists.")
+        elif "cannot be null" in str(e.orig):
+            raise HTTPException(status_code=400, detail="A required field is missing.")
+        elif "foreign key constraint fails" in str(e.orig):
+            raise HTTPException(status_code=400, detail="Invalid reference to another table.")
+        else:
+            raise HTTPException(status_code=400, detail="Database integrity error.")
+    except Exception as e:
+        logger.exception("Failed to create ai persona")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @ai_persona_router.get("/{persona_id}", response_model=AIPersonaResponse, status_code=status.HTTP_200_OK, dependencies=[sales_checker])
 async def get_ai_persona(

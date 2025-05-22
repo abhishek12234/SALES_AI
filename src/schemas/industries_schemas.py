@@ -4,12 +4,14 @@ from datetime import datetime
 
 class IndustryBase(BaseModel):
     name: str
+    details: str
 
 class IndustryCreate(IndustryBase):
     pass
 
 class IndustryUpdate(BaseModel):
     name: Optional[str] = None
+    details: Optional[str] = None
 
 class IndustryResponse(IndustryBase):
     industry_id: str
