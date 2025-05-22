@@ -6,7 +6,8 @@ from fastapi import HTTPException
 
 class IndustryDAL:
     async def create_industry(self, industry_data: IndustryCreate, db_session: AsyncSession) -> Industry:
-        new_industry = Industry(**industry_data.dict())
+        industry_data= industry_data.model_dump()
+        new_industry = Industry(**industry_data)
         db_session.add(new_industry)
         await db_session.commit()
         await db_session.refresh(new_industry)

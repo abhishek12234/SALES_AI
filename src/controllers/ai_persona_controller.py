@@ -24,18 +24,7 @@ async def create_ai_persona(
     persona_data: AIPersonaCreate,
     session: AsyncSession = Depends(get_session)
 ):
-    """
-    Create a new AI Persona
-    """
-    # Check if persona with the same name already exists
-    existing_persona = await ai_persona_service.get_ai_persona_by_name(persona_data.name, session)
-    if existing_persona:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="AI Persona with this name already exists."
-        )
-    
-    
+
     new_persona = await ai_persona_service.create_ai_persona(persona_data, session)
     return new_persona
     

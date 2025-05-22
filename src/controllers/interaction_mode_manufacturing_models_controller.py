@@ -15,7 +15,7 @@ service = InteractionModeManufacturingModelDAL()
 
 @interaction_mode_manufacturing_models_router.post("/", response_model=InteractionModeManufacturingModelResponse, status_code=status.HTTP_201_CREATED, dependencies=[super_admin_checker])
 async def create(model: InteractionModeManufacturingModelBase, session: AsyncSession = Depends(get_session)):
-    existing = await service.get_by_mode_and_model(model.mode_id, model.manufacturing_model, session)
+    existing = await service.get_by_mode_and_model(model.mode_id, model.manufacturing_model_id, session)
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Entry with this mode and manufacturing_model already exists.")
     created = await service.create(model, session)

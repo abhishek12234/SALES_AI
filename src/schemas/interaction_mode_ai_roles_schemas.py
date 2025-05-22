@@ -4,7 +4,7 @@ from datetime import datetime
 
 class InteractionModeAIRoleBase(BaseModel):
     mode_id: str
-    ai_role: str
+    ai_role_id: str
     prompt_template: str
 
 class InteractionModeAIRoleResponse(InteractionModeAIRoleBase):

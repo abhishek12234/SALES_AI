@@ -6,7 +6,7 @@ from enum import Enum
 
 class InteractionModeNameEnum(str, Enum):
     prospecting = "prospecting"
-    sales = "sales"
+    discovering = "discovering"
     closing = "closing"
 
 class InteractionModeBase(BaseModel):

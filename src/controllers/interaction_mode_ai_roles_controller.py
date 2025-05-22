@@ -15,7 +15,7 @@ service = InteractionModeAIRoleDAL()
 
 @interaction_mode_ai_roles_router.post("/", response_model=InteractionModeAIRoleResponse, status_code=status.HTTP_201_CREATED, dependencies=[super_admin_checker])
 async def create(model: InteractionModeAIRoleBase, session: AsyncSession = Depends(get_session)):
-    existing = await service.get_by_mode_and_role(model.mode_id, model.ai_role, session)
+    existing = await service.get_by_mode_and_role(model.mode_id, model.ai_role_id, session)
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Entry with this mode and ai_role already exists.")
     created = await service.create(model, session)

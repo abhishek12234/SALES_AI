@@ -1834,6 +1834,270 @@ paths:
         '404':
           description: Plant size impact not found
 
+  /api/v1/interaction-mode-ai-roles:
+    post:
+      tags: [Interaction Mode AI Roles]
+      summary: Create an Interaction Mode AI Role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeAIRoleBase'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeAIRoleResponse'
+    get:
+      tags: [Interaction Mode AI Roles]
+      summary: Get all Interaction Mode AI Roles
+      responses:
+        '200':
+          description: List of Interaction Mode AI Roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InteractionModeAIRoleResponse'
+
+  /api/v1/interaction-mode-ai-roles/{id}:
+    get:
+      tags: [Interaction Mode AI Roles]
+      summary: Get Interaction Mode AI Role by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interaction Mode AI Role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeAIRoleResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Interaction Mode AI Roles]
+      summary: Update Interaction Mode AI Role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeAIRoleBase'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeAIRoleResponse'
+        '404':
+          description: Not found
+    delete:
+      tags: [Interaction Mode AI Roles]
+      summary: Delete Interaction Mode AI Role
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+
+  /api/v1/interaction-mode-manufacturing-models:
+    post:
+      tags: [Interaction Mode Manufacturing Models]
+      summary: Create an Interaction Mode Manufacturing Model
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeManufacturingModelBase'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeManufacturingModelResponse'
+    get:
+      tags: [Interaction Mode Manufacturing Models]
+      summary: Get all Interaction Mode Manufacturing Models
+      responses:
+        '200':
+          description: List of Interaction Mode Manufacturing Models
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InteractionModeManufacturingModelResponse'
+
+  /api/v1/interaction-mode-manufacturing-models/{id}:
+    get:
+      tags: [Interaction Mode Manufacturing Models]
+      summary: Get Interaction Mode Manufacturing Model by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interaction Mode Manufacturing Model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeManufacturingModelResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Interaction Mode Manufacturing Models]
+      summary: Update Interaction Mode Manufacturing Model
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeManufacturingModelBase'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeManufacturingModelResponse'
+        '404':
+          description: Not found
+    delete:
+      tags: [Interaction Mode Manufacturing Models]
+      summary: Delete Interaction Mode Manufacturing Model
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+
+  /api/v1/interaction-mode-plant-size-impacts:
+    post:
+      tags: [Interaction Mode Plant Size Impacts]
+      summary: Create an Interaction Mode Plant Size Impact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModePlantSizeImpactBase'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModePlantSizeImpactResponse'
+    get:
+      tags: [Interaction Mode Plant Size Impacts]
+      summary: Get all Interaction Mode Plant Size Impacts
+      responses:
+        '200':
+          description: List of Interaction Mode Plant Size Impacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InteractionModePlantSizeImpactResponse'
+
+  /api/v1/interaction-mode-plant-size-impacts/{id}:
+    get:
+      tags: [Interaction Mode Plant Size Impacts]
+      summary: Get Interaction Mode Plant Size Impact by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interaction Mode Plant Size Impact
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModePlantSizeImpactResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Interaction Mode Plant Size Impacts]
+      summary: Update Interaction Mode Plant Size Impact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModePlantSizeImpactBase'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModePlantSizeImpactResponse'
+        '404':
+          description: Not found
+    delete:
+      tags: [Interaction Mode Plant Size Impacts]
+      summary: Delete Interaction Mode Plant Size Impact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2261,26 +2525,28 @@ components:
       type: object
       required:
         - name
-        - industry
+        - industry_id
+        - ai_role_id
+        - experience_level
+        - plant_size_impact_id
+        - manufacturing_model_id
       properties:
         name:
           type: string
-        industry:
+        industry_id:
           type: string
-        role:
+        ai_role_id:
           type: string
-          enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
         experience_level:
           type: string
           enum: [junior, mid, senior]
-        plant_size_impact:
-          type: string
-          enum: [small, medium, large]
+          description: 'junior, mid, or senior'
         geography:
           type: string
-        manufacturing_model:
+        plant_size_impact_id:
           type: string
-          enum: [self_manufacturing, contract_manufacturing]
+        manufacturing_model_id:
+          type: string
         behavioral_traits:
           type: array
           items:
@@ -2292,7 +2558,6 @@ components:
                 type: integer
               description:
                 type: string
-
 
     AIPersonaResponse:
       type: object
@@ -2302,19 +2567,18 @@ components:
           format: uuid
         name:
           type: string
-        industry:
+        industry_id:
           type: string
-        role:
+        ai_role_id:
           type: string
-          enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
         experience_level:
           type: string
-          enum: [junior, mid, senior]
         geography:
           type: string
-        manufacturing_model:
+        plant_size_impact_id:
           type: string
-          enum: [self_manufacturing, contract_manufacturing]
+        manufacturing_model_id:
+          type: string
         behavioral_traits:
           type: array
           items:
@@ -2326,7 +2590,6 @@ components:
                 type: integer
               description:
                 type: string
-
         status_active:
           type: boolean
         created_at:
@@ -2599,7 +2862,6 @@ components:
           type: string
         plant_size_impact:
           type: string
-          enum: [small, medium, large]
         user_input:
           type: string
           description: The user's message to the AI persona.
@@ -2749,6 +3011,73 @@ components:
             plant_size_impact_id:
               type: string
               format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    InteractionModeAIRoleBase:
+      type: object
+      properties:
+        mode_id:
+          type: string
+        ai_role_id:
+          type: string
+        prompt_template:
+          type: string
+    InteractionModeAIRoleResponse:
+      allOf:
+        - $ref: '#/components/schemas/InteractionModeAIRoleBase'
+        - type: object
+          properties:
+            interaction_mode_ai_role_id:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    InteractionModeManufacturingModelBase:
+      type: object
+      properties:
+        mode_id:
+          type: string
+        manufacturing_model_id:
+          type: string
+        prompt_template:
+          type: string
+    InteractionModeManufacturingModelResponse:
+      allOf:
+        - $ref: '#/components/schemas/InteractionModeManufacturingModelBase'
+        - type: object
+          properties:
+            interaction_mode_manufacturing_model_id:
+              type: string
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    InteractionModePlantSizeImpactBase:
+      type: object
+      properties:
+        mode_id:
+          type: string
+        plant_size_impact_id:
+          type: string
+        prompt_template:
+          type: string
+    InteractionModePlantSizeImpactResponse:
+      allOf:
+        - $ref: '#/components/schemas/InteractionModePlantSizeImpactBase'
+        - type: object
+          properties:
+            interaction_mode_plant_size_impact_id:
+              type: string
             created_at:
               type: string
               format: date-time

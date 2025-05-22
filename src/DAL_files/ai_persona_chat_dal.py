@@ -7,20 +7,12 @@ from langchain.prompts import (
 )
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import UpstashRedisChatMessageHistory
-
-from schemas.ai_personas_schemas import ManufacturingModelEnum, ExperienceLevelEnum,PlantSizeImpactEnum, RoleEnum
+from schemas.ai_personas_chat_schemas import ChatWithPersonaRequest
 from langchain_groq import ChatGroq
 from pydantic import BaseModel
 import uuid
 
-class ChatWithPersonaRequest(BaseModel):
-    industry: str
-    manufacturing_model: ManufacturingModelEnum
-    experience_level: ExperienceLevelEnum
-    role: RoleEnum
-    intraction_mode_id: str
-    geography: str
-    plant_size_impact: PlantSizeImpactEnum
+
 
 llm=ChatGroq(
     model="llama-3.3-70b-versatile",

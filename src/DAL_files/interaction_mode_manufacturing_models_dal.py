@@ -26,8 +26,8 @@ class InteractionModeManufacturingModelDAL:
         result = await db_session.execute(select(InteractionModeManufacturingModel).where(InteractionModeManufacturingModel.interaction_mode_manufacturing_model_id == id))
         return result.scalar_one_or_none()
 
-    async def get_by_mode_and_model(self, mode_id: str, manufacturing_model: str, db_session: AsyncSession):
-        result = await db_session.execute(select(InteractionModeManufacturingModel).where(InteractionModeManufacturingModel.mode_id == mode_id, InteractionModeManufacturingModel.manufacturing_model == manufacturing_model))
+    async def get_by_mode_and_model(self, mode_id: str, manufacturing_model_id: str, db_session: AsyncSession):
+        result = await db_session.execute(select(InteractionModeManufacturingModel).where(InteractionModeManufacturingModel.mode_id == mode_id, InteractionModeManufacturingModel.manufacturing_model_id == manufacturing_model_id))
         return result.scalar_one_or_none()
 
     async def update(self, id: str, model: InteractionModeManufacturingModelBase, db_session: AsyncSession):

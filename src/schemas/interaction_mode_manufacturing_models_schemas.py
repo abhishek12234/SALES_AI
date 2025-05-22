@@ -4,7 +4,7 @@ from datetime import datetime
 
 class InteractionModeManufacturingModelBase(BaseModel):
     mode_id: str
-    manufacturing_model: str
+    manufacturing_model_id: str
     prompt_template: str
 
 class InteractionModeManufacturingModelResponse(InteractionModeManufacturingModelBase):

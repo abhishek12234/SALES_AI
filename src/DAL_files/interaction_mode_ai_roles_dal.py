@@ -26,8 +26,8 @@ class InteractionModeAIRoleDAL:
         result = await db_session.execute(select(InteractionModeAIRole).where(InteractionModeAIRole.interaction_mode_ai_role_id == id))
         return result.scalar_one_or_none()
 
-    async def get_by_mode_and_role(self, mode_id: str, ai_role: str, db_session: AsyncSession):
-        result = await db_session.execute(select(InteractionModeAIRole).where(InteractionModeAIRole.mode_id == mode_id, InteractionModeAIRole.ai_role == ai_role))
+    async def get_by_mode_and_role(self, mode_id: str, ai_role_id: str, db_session: AsyncSession):
+        result = await db_session.execute(select(InteractionModeAIRole).where(InteractionModeAIRole.mode_id == mode_id, InteractionModeAIRole.ai_role_id == ai_role_id))
         return result.scalar_one_or_none()
 
     async def update(self, id: str, model: InteractionModeAIRoleBase, db_session: AsyncSession):

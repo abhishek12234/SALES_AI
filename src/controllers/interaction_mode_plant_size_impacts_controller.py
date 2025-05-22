@@ -15,7 +15,7 @@ service = InteractionModePlantSizeImpactDAL()
 
 @interaction_mode_plant_size_impacts_router.post("/", response_model=InteractionModePlantSizeImpactResponse, status_code=status.HTTP_201_CREATED, dependencies=[super_admin_checker])
 async def create(model: InteractionModePlantSizeImpactBase, session: AsyncSession = Depends(get_session)):
-    existing = await service.get_by_mode_and_impact(model.mode_id, model.plant_size_impact, session)
+    existing = await service.get_by_mode_and_impact(model.mode_id, model.plant_size_impact_id, session)
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Entry with this mode and plant size impact already exists.")
     created = await service.create(model, session)

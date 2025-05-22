@@ -20,7 +20,7 @@ async_engine: AsyncEngine = create_async_engine(
 # Initialize the database (create all tables)
 async def init_db():
     print("⏳ Initializing DB...")
-    from models.role_permissions import RolePermission  # Add this import to detect the table
+    from models.role_permissions import RolePermission
     from models.users import User
     from models.roles import Role
     from models.ai_personas import AIPersona
@@ -34,7 +34,12 @@ async def init_db():
     from models.ai_roles import AIRole
     from models.manufacturing_models import ManufacturingModel
     from models.plant_size_impacts import PlantSizeImpact
-    from models.industries import Industry  
+    from models.industries import Industry
+    from models.interaction_mode_ai_roles import InteractionModeAIRole
+    from models.interaction_mode_manufacturing_models import InteractionModeManufacturingModel
+    from models.interaction_mode_plant_size_impacts import InteractionModePlantSizeImpact
+    
+
 
     async with async_engine.begin() as conn:
 

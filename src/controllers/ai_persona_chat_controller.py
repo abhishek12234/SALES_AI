@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 from DAL_files.ai_persona_chat_dal import AIPersonaChatDAL
 import uuid
 from langchain_groq import ChatGroq
@@ -7,10 +6,10 @@ from DAL_files.interaction_modes_dal import InteractionModeDAL
 from schemas.users_schemas import UserBase
 from fastapi import Depends
 from dependencies import get_current_user
-from schemas.ai_personas_schemas import ManufacturingModelEnum, ExperienceLevelEnum,PlantSizeImpactEnum, RoleEnum
 from database import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from DAL_files.sessions_dal import SessionDAL
+from schemas.ai_personas_chat_schemas import ChatWithPersonaRequest
 
 llm=ChatGroq(
     model="llama-3.3-70b-versatile",
@@ -22,19 +21,15 @@ ai_persona_chat_service = AIPersonaChatDAL(llm)
 interaction_mode_services = InteractionModeDAL()
 session_services = SessionDAL()
 
-class ChatWithPersonaRequest(BaseModel):
-    industry: str
-    manufacturing_model: ManufacturingModelEnum
-    experience_level: ExperienceLevelEnum
-    role: RoleEnum
-    user_input: str
-    geography: str
-    plant_size_impact: PlantSizeImpactEnum
+
     
 
 
 persona_prompt_template = """
 You are now operating in CLOSING MODE within the RealSales platform. maintaing response length strictly between 60-80 words per resopnse. You're an AI sales persona in the {industry} manufacturing industry, simulating realistic closing conversations where a sales rep finalizes deals for equipment, solutions, or services.
+
+Industry {industry}:
+{industry_details}
 
 🎯 Core Scenario Parameters:
 1. Initial State of Mind:
@@ -51,7 +46,6 @@ You are now operating in CLOSING MODE within the RealSales platform. maintaing r
 - Technical support & response time
 - Spare parts availability (tariff-sensitive)
 - Integration with existing systems
-- {industry_details}
 - Implementation timeline & project mgmt
 - Contract terms, warranty, performance guarantees
 - Tariff impacts on cost and maintenance
@@ -74,13 +68,9 @@ You are now operating in CLOSING MODE within the RealSales platform. maintaing r
 - Tariff risk assessment mandatory
 
 🧑‍💼 Role-Based Adaptation:
-- {role} Position Adaptation
 - {role_details}
 
-
-
 🏭 Manufacturing Model Adaptation:
-- {manufacturing_model} Concerns
 - {manufacturing_model_details}
 
 🏢 Plant Size Impact:
@@ -212,7 +202,7 @@ ROI Calculation Response:
 @ai_persona_chat_router.post("/chat/{session_id}")
 async def chat_with_persona(session_id: str, persona_data: ChatWithPersonaRequest, current_user: UserBase = Depends(get_current_user),session: AsyncSession = Depends(get_session)):
     try:
-        user_session=await session_services.get_session_by_id(session_id,session)
+        user_session=await session_services.get_session_by_id_and_user_id(session_id,current_user.user_id,session)  
         if user_session is None:
             raise HTTPException(status_code=404, detail="Session not found. Create a new session first.")
         

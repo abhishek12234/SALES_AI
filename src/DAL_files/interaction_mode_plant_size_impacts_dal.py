@@ -26,8 +26,8 @@ class InteractionModePlantSizeImpactDAL:
         result = await db_session.execute(select(InteractionModePlantSizeImpact).where(InteractionModePlantSizeImpact.interaction_mode_plant_size_impact_id == id))
         return result.scalar_one_or_none()
 
-    async def get_by_mode_and_impact(self, mode_id: str, plant_size_impact: str, db_session: AsyncSession):
-        result = await db_session.execute(select(InteractionModePlantSizeImpact).where(InteractionModePlantSizeImpact.mode_id == mode_id, InteractionModePlantSizeImpact.plant_size_impact == plant_size_impact))
+    async def get_by_mode_and_impact(self, mode_id: str, plant_size_impact_id: str, db_session: AsyncSession):
+        result = await db_session.execute(select(InteractionModePlantSizeImpact).where(InteractionModePlantSizeImpact.mode_id == mode_id, InteractionModePlantSizeImpact.plant_size_impact_id == plant_size_impact_id))
         return result.scalar_one_or_none()
 
     async def update(self, id: str, model: InteractionModePlantSizeImpactBase, db_session: AsyncSession):

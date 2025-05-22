@@ -7,7 +7,7 @@ class InteractionMode(Base):
     __tablename__ = 'interaction_modes'
 
     mode_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(Enum('prospecting', 'sales', 'closing', name='interaction_mode_enum'), nullable=False, unique=True)
+    name = Column(Enum('prospecting', 'discovering', 'closing', name='interaction_mode_enum'), nullable=False, unique=True)
     description = Column(Text, nullable=True)
     prompt_template = Column(Text, nullable=False)
     status_active = Column(Boolean, nullable=False, server_default=text('true'))

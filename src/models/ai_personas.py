@@ -1,13 +1,10 @@
-from sqlalchemy import Column, String, TIMESTAMP, Text, Enum, text, Boolean, ForeignKey, Index
+from sqlalchemy import Column, String, TIMESTAMP, Text, Enum, text, Boolean, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.mysql import JSON
 from database import Base
 import uuid
 
-class ExperienceLevelEnum(str, Enum):
-    junior = "junior"
-    mid = "mid"
-    senior = "senior"
+
 
 class AIPersona(Base):
     __tablename__ = 'ai_personas'
@@ -19,7 +16,18 @@ class AIPersona(Base):
             'experience_level',
             'geography',
             'plant_size_impact_id',
-            'manufacturing_model_id'
+            'manufacturing_model_id',
+            mysql_length={'geography': 255}
+        ),
+        UniqueConstraint(
+            'name',
+            'industry_id',
+            'ai_role_id',
+            'experience_level',
+            'geography',
+            'plant_size_impact_id',
+            'manufacturing_model_id',
+            name='uq_ai_persona_unique_combo'
         ),
     )
 
@@ -31,7 +39,7 @@ class AIPersona(Base):
     geography = Column(Text, nullable=True)
     plant_size_impact_id = Column(String(36), ForeignKey('plant_size_impacts.plant_size_impact_id'), nullable=False)
     manufacturing_model_id = Column(String(36), ForeignKey('manufacturing_models.manufacturing_model_id'), nullable=False)
-    behavioral_traits = Column(JSONB, nullable=True)
+    behavioral_traits = Column(JSON, nullable=True)
     status_active = Column(Boolean, nullable=False, server_default=text('true'))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))

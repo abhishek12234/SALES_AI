@@ -129,6 +129,8 @@ async def create_user(user: UserCreate,session: AsyncSession = Depends(get_sessi
         raise HTTPException(status_code=400, detail="Email already registered")
     
     created_user = await user_service.create_user(user, session)
+    print("created_user",created_user,"=====================", type(created_user))
+    print("created_user.user_id",created_user.user_id,"=====================", type(created_user.user_id))
     if not created_user:
         raise HTTPException(status_code=400, detail="User creation failed")
     
@@ -137,7 +139,7 @@ async def create_user(user: UserCreate,session: AsyncSession = Depends(get_sessi
         raise HTTPException(status_code=400, detail="User subscription creation failed")
     
     # Fetch the user again to get updated relationships
-    created_user = await user_service.get_user_by_id(created_user.user_id, session)
+    # created_user = await user_service.get_user_by_id(created_user.user_id, session)
     # Generate token
     access_token = create_access_token(
         user_data={

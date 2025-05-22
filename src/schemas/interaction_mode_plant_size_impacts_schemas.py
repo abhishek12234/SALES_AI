@@ -4,7 +4,7 @@ from datetime import datetime
 
 class InteractionModePlantSizeImpactBase(BaseModel):
     mode_id: str
-    plant_size_impact: str
+    plant_size_impact_id: str
     prompt_template: str
 
 class InteractionModePlantSizeImpactResponse(InteractionModePlantSizeImpactBase):
