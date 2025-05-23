@@ -10,20 +10,18 @@ from database import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from DAL_files.sessions_dal import SessionDAL
 from schemas.ai_personas_chat_schemas import ChatWithPersonaRequest
+from redis_store import get_prompt_template
+from pydantic import BaseModel
 
 llm=ChatGroq(
     model="llama-3.3-70b-versatile",
-    groq_api_key="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",
+    groq_api_key="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",
     temperature=0.1)
 
 ai_persona_chat_router = APIRouter()
 ai_persona_chat_service = AIPersonaChatDAL(llm)
 interaction_mode_services = InteractionModeDAL()
 session_services = SessionDAL()
-
-
-    
-
 
 persona_prompt_template = """
 You are now operating in CLOSING MODE within the RealSales platform. maintaing response length strictly between 60-80 words per resopnse. You're an AI sales persona in the {industry} manufacturing industry, simulating realistic closing conversations where a sales rep finalizes deals for equipment, solutions, or services.
@@ -199,8 +197,16 @@ ROI Calculation Response:
 - Parts/service under tariff pressure
 """
 
+class ChatRequest(BaseModel):
+    user_input: str
+
 @ai_persona_chat_router.post("/chat/{session_id}")
-async def chat_with_persona(session_id: str, persona_data: ChatWithPersonaRequest, current_user: UserBase = Depends(get_current_user),session: AsyncSession = Depends(get_session)):
+async def chat_with_persona(
+    session_id: str,
+    chat_request: ChatRequest,
+    current_user: UserBase = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
     try:
         user_session=await session_services.get_session_by_id_and_user_id(session_id,current_user.user_id,session)  
         if user_session is None:
@@ -209,13 +215,14 @@ async def chat_with_persona(session_id: str, persona_data: ChatWithPersonaReques
         await session_services.update_session(user_session, {"status":"active"}, session)
         
         user_id = current_user.user_id
-        interaction_mode = await interaction_mode_services.get_mode_by_id(user_session.mode_id,session)
-        print(interaction_mode,"interaction_mode")
         
-        # Prepare the persona prompt template with md_content and user_name
-        #persona_prompt = interaction_mode.prompt_template
-        persona_prompt = persona_prompt_template
-        response = await ai_persona_chat_service.chat_with_persona(session_id, user_id, user_session.persona_id, persona_prompt, persona_data)
+        # Fetch the prompt template from Redis
+        persona_prompt = await get_prompt_template(user_id, session_id)
+        if not persona_prompt:
+            raise HTTPException(status_code=404, detail="Prompt template not found in Redis.")
+        print(persona_prompt,"this is new prompt template")
+        user_input = chat_request.user_input
+        response = await ai_persona_chat_service.chat_with_persona(session_id, user_id, persona_prompt, user_input)
         return {"response": response}
     
     except Exception as e:

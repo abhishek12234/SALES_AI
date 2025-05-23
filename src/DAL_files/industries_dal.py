@@ -14,7 +14,8 @@ class IndustryDAL:
         return new_industry
 
     async def get_industry_by_id(self, industry_id: str, db_session: AsyncSession) -> Industry:
-        return await db_session.get(Industry, industry_id)
+        result = await db_session.execute(select(Industry).where(Industry.industry_id == industry_id))
+        return result.scalar_one_or_none()
 
     async def get_all_industries(self, db_session: AsyncSession) -> list[Industry]:
         result = await db_session.execute(select(Industry))

@@ -10,3 +10,6 @@ class AIRole(Base):
     name = Column(String(100), nullable=False, unique=True)
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()")) 
+
+    #relationships
+    ai_persona = relationship("AIPersona", back_populates="ai_role")

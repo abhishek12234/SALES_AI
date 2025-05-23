@@ -10,13 +10,14 @@ class SessionStatusEnum(str, Enum):
     abandoned = "abandoned"
 
 class SessionBase(BaseModel):
-    user_id: str
+   
     persona_id: str
     mode_id: str
 
 
 class SessionCreate(SessionBase):
-    pass
+    persona_id: str
+    mode_id: str
 
 class SessionUpdate(BaseModel):
     persona_id: Optional[str] = None
@@ -27,6 +28,7 @@ class SessionUpdate(BaseModel):
 
 class SessionResponse(SessionBase):
     session_id: str
+    user_id: str
     start_time: datetime
     end_time: Optional[datetime] = None
     duration: Optional[int] = None  # interval as string

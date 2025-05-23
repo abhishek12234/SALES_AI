@@ -4,6 +4,30 @@ info:
   description: Complete API documentation for the AI Sales system.
   version: 1.0.0
 
+tags:
+  - name: Authentication
+    description: User authentication and management
+  - name: Roles
+    description: Role management
+  - name: Sessions
+    description: Training session management
+  - name: Role Permissions
+    description: Role permission management
+  - name: Subscriptions
+    description: Subscription management
+  - name: AI Personas
+    description: AI Persona configuration
+  - name: Interaction Modes
+    description: Interaction mode management
+  - name: Performance Reports
+    description: Performance reporting
+  - name: Payments
+    description: Payment management
+  - name: Feedback
+    description: User feedback on sessions
+  - name: User Subscriptions
+    description: User subscription management
+
 security:
   - BearerAuth: []
 
@@ -582,7 +606,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PersonaData'
+              $ref: '#/components/schemas/SessionCreate'
       responses:
         '201':
           description: Session created successfully
@@ -1052,6 +1076,32 @@ paths:
                 $ref: '#/components/schemas/InteractionModeResponse'
         '404':
           description: Interaction mode not found
+    put:
+      tags: [Interaction Modes]
+      summary: Update interaction mode
+      description: Update an interaction mode by its ID.
+      parameters:
+        - name: mode_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeCreate'
+      responses:
+        '200':
+          description: Interaction mode updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeResponse'
+        '404':
+          description: Interaction mode not found
 
   /api/v1/interaction-modes/by-name/{name}:
     get:
@@ -1433,7 +1483,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChatWithPersonaRequest'
+              type: object
+              properties:
+                user_input:
+                  type: string
+                  description: The user's message to the AI persona.
+              required:
+                - user_input
       responses:
         '200':
           description: AI persona chat response
@@ -2291,9 +2347,7 @@ components:
         - start_time
         - status
       properties:
-        user_id:
-          type: string
-          format: uuid
+
         persona_id:
           type: string
           format: uuid
@@ -3089,27 +3143,3 @@ components:
             updated_at:
               type: string
               format: date-time
-
-tags:
-  - name: Authentication
-    description: User authentication and management
-  - name: Roles
-    description: Role management
-  - name: Sessions
-    description: Training session management
-  - name: Role Permissions
-    description: Role permission management
-  - name: Subscriptions
-    description: Subscription management
-  - name: AI Personas
-    description: AI Persona configuration
-  - name: Interaction Modes
-    description: Interaction mode management
-  - name: Performance Reports
-    description: Performance reporting
-  - name: Payments
-    description: Payment management
-  - name: Feedback
-    description: User feedback on sessions
-  - name: User Subscriptions
-    description: User subscription management

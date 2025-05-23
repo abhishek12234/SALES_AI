@@ -14,12 +14,6 @@ import uuid
 
 
 
-llm=ChatGroq(
-    model="llama-3.3-70b-versatile",
-    groq_api_key="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",
-    temperature=0.1)
-
-
 plant_adaptation_guidelines = {
     "Industry Details": {
         "food_and_beverage": """Industry-Specific Context for Food & Beverage:
@@ -91,7 +85,7 @@ class AIPersonaChatDAL:
     def __init__(self, llm):
         self.llm = llm
 
-    async def chat_with_persona(self,session_id:str, user_id:str,persona_id:str, persona_prompt:str,persona_data:ChatWithPersonaRequest):
+    async def chat_with_persona(self,session_id:str, user_id:str,persona_prompt:str,user_input:str):
         # Set up Upstash Redis for chat history
         UPSTASH_URL = "https://dynamic-buzzard-35275.upstash.io"
         UPSTASH_TOKEN = "AYnLAAIjcDFiMWYzZDAxZDE2ZTk0MzE1OTFiMWJhNjEyNDVlNGU4ZXAxMA"
@@ -99,41 +93,20 @@ class AIPersonaChatDAL:
         history = UpstashRedisChatMessageHistory(
             url=UPSTASH_URL,
             token=UPSTASH_TOKEN,
-            session_id=f"user:{user_id}:session:{session_id}:persona:{persona_id}"
+            session_id=f"user:{user_id}:session:{session_id}"
         )
-
-        # Validate and get industry details
-        industry_key = persona_data.industry.lower().replace(" ", "_")
-        industry_details = plant_adaptation_guidelines["Industry Details"].get(
-            industry_key,
-            "General manufacturing industry context and considerations."
-        )
-
-        # Prepare the prompt template
-        system_template = persona_prompt.format(
-            industry_details=plant_adaptation_guidelines["Industry Details"][persona_data.industry],
-            industry=persona_data.industry,
-            experience_level=persona_data.experience_level,
-            role_details=plant_adaptation_guidelines["Role"][persona_data.role],
-            manufacturing_model_details=plant_adaptation_guidelines["Manufacturing Model Details"][persona_data.manufacturing_model],
-            plant_size_considerations=plant_adaptation_guidelines["Plant Size Considerations"][persona_data.plant_size_impact],
-            role=persona_data.role,
-            plant_size_impact=persona_data.plant_size_impact,
-            manufacturing_model=persona_data.manufacturing_model
-        )
-        prompt = ChatPromptTemplate.from_messages([
-            SystemMessagePromptTemplate.from_template(system_template),
-            MessagesPlaceholder(variable_name="chat_history"),
-            HumanMessagePromptTemplate.from_template("{input}"),
-        ])
 
         # Set up memory with chat history
         memory = ConversationBufferMemory(memory_key="chat_history", chat_memory=history, return_messages=True)
-
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(persona_prompt),
+            MessagesPlaceholder(variable_name="chat_history"),
+            HumanMessagePromptTemplate.from_template("{input}"),
+        ])
         # Create the conversation chain
         conversation_chain = ConversationChain(memory=memory, prompt=prompt, llm=self.llm)
 
         # Get the response
-        teacher_response = conversation_chain.invoke({"input": persona_data.user_input})
+        teacher_response = conversation_chain.invoke({"input": user_input})
 
         return teacher_response["response"]

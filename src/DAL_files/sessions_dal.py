@@ -27,19 +27,13 @@ class SessionDAL:
         result = await db_session.execute(select(Session))
         return result.scalars().all()
 
-    async def create_session(self, user_id: str, persona_data: PersonaData, db_session: AsyncSession) -> Session:
+    async def create_session(self, user_id: str, persona_id: str, mode_id: str, db_session: AsyncSession) -> Session:
         try:
             
-
-            persona_data=persona_data.model_dump()
-            mode = await mode_service.get_mode_by_name("closing", db_session)
-            if not mode:
-                raise HTTPException(status_code=404, detail='Interaction mode not found')
-                
             data = {
                 "user_id": user_id,
-                "ai_persona": persona_data,
-                "mode_id": mode.mode_id
+                "persona_id":persona_id,
+                "mode_id": mode_id
             }
             new_session = Session(**data)
             new_session.start_time = datetime.now(timezone.utc)

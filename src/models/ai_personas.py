@@ -45,8 +45,9 @@ class AIPersona(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
 
     # Relationships
-    industry = relationship("Industry")
-    ai_role = relationship("AIRole")
-    plant_size_impact = relationship("PlantSizeImpact")
-    manufacturing_model = relationship("ManufacturingModel")
-    sessions = relationship("Session", back_populates="persona")
+    industry = relationship("Industry", back_populates="ai_persona",lazy="selectin")
+    ai_role = relationship("AIRole",back_populates="ai_persona",lazy="selectin")
+    plant_size_impact = relationship("PlantSizeImpact",back_populates="ai_persona",lazy="selectin")
+    manufacturing_model = relationship("ManufacturingModel",back_populates="ai_persona",lazy="selectin")
+    sessions=relationship("Session", back_populates="persona")
+
