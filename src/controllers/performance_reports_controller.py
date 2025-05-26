@@ -1,9 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from schemas.performance_reports_schemas import PerformanceReportCreate, PerformanceReportUpdate, PerformanceReportResponse
 from database import get_session
 from DAL_files.performance_reports_dal import PerformanceReportDAL
+from DAL_files.sessions_dal import SessionDAL
+from schemas.users_schemas import UserBase
+from dependencies import get_current_user
+from pydantic import BaseModel
+from typing import Dict, Any, List
+from io import BytesIO
+from datetime import datetime
+from services.pdf_generator import PerformanceReportPDFGenerator
+
+class GenerateReportRequest(BaseModel):
+    user_id: str
 
 performance_reports_router = APIRouter(
     prefix="/performance-reports",
@@ -18,7 +30,25 @@ async def create_performance_report(
     report_service = PerformanceReportDAL(session)
     try:
         created_report = await report_service.create_performance_report(report_data)
-        return created_report
+        # Convert to dict to ensure proper serialization
+        report_dict = {
+            "report_id": created_report.report_id,
+            "session_id": created_report.session_id,
+            "overall_score": created_report.overall_score,
+            "engagement_level": created_report.engagement_level,
+            "communication_level": created_report.communication_level,
+            "objection_handling": created_report.objection_handling,
+            "adaptability": created_report.adaptability,
+            "persuasiveness": created_report.persuasiveness,
+            "create_interest": created_report.create_interest,
+            "sale_closing": created_report.sale_closing,
+            "discovery": created_report.discovery,
+            "cross_selling": created_report.cross_selling,
+            "solution_fit": created_report.solution_fit,
+            "coaching_summary": created_report.coaching_summary,
+            "created_at": created_report.created_at
+        }
+        return report_dict
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -31,7 +61,63 @@ async def get_performance_report_by_id(
     report = await report_service.get_performance_report_by_id(report_id)
     if not report:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Performance report not found")
-    return report
+    # Convert to dict to ensure proper serialization
+    report_dict = {
+        "report_id": report.report_id,
+        "session_id": report.session_id,
+        "overall_score": report.overall_score,
+        "engagement_level": report.engagement_level,
+        "communication_level": report.communication_level,
+        "objection_handling": report.objection_handling,
+        "adaptability": report.adaptability,
+        "persuasiveness": report.persuasiveness,
+        "create_interest": report.create_interest,
+        "sale_closing": report.sale_closing,
+        "discovery": report.discovery,
+        "cross_selling": report.cross_selling,
+        "solution_fit": report.solution_fit,
+        "coaching_summary": report.coaching_summary,
+        "created_at": report.created_at
+    }
+    return report_dict
+
+@performance_reports_router.get("/{report_id}/pdf", response_class=StreamingResponse)
+async def get_performance_report_pdf(
+    report_id: str,
+    current_user: UserBase = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_session)
+):
+    """Generate and return a PDF version of the performance report"""
+    try:
+        # Initialize DAL
+        report_dal = PerformanceReportDAL(db_session)
+
+        # Get the report
+        report = await report_dal.get_performance_report_by_id(report_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        # Generate PDF
+        pdf_generator = PerformanceReportPDFGenerator()
+        output_buffer = BytesIO()
+        pdf_generator.generate_pdf(report, output_buffer)
+        output_buffer.seek(0)
+
+        # Generate filename with timestamp
+        filename = f"performance_report_{report.report_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+        # Return PDF as streaming response
+        return StreamingResponse(
+            output_buffer,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Type": "application/pdf"
+            }
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
 
 # @performance_reports_router.get("/by-session/{session_id}", response_model=list[PerformanceReportResponse], status_code=status.HTTP_200_OK)
 # async def get_reports_by_session_id(
@@ -64,3 +150,59 @@ async def delete_performance_report(
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Performance report not found")
     return
+
+@performance_reports_router.post("/generate/{session_id}", response_model=PerformanceReportResponse, status_code=status.HTTP_201_CREATED)
+async def generate_performance_report(
+    session_id: str,
+    request: GenerateReportRequest,
+    current_user: UserBase = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    """Generate a performance report from chat history for a given session"""
+    # Validate that the session exists and belongs to the user
+    session_service = SessionDAL()
+    user_session = await session_service.get_session_by_id_and_user_id(session_id, request.user_id, session)
+    
+    if not user_session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found or does not belong to the specified user"
+        )
+    
+    # # Only allow report generation for completed sessions
+    # if user_session.status != "completed":
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail="Performance reports can only be generated for completed sessions"
+    #     )
+    
+    report_service = PerformanceReportDAL(session)
+    try:
+        generated_report = await report_service.generate_performance_report(
+            user_id=request.user_id,
+            session_id=session_id
+        )
+        # Convert to dict to ensure proper serialization
+        report_dict = {
+            "report_id": generated_report.report_id,
+            "session_id": generated_report.session_id,
+            "overall_score": generated_report.overall_score,
+            "engagement_level": generated_report.engagement_level,
+            "communication_level": generated_report.communication_level,
+            "objection_handling": generated_report.objection_handling,
+            "adaptability": generated_report.adaptability,
+            "persuasiveness": generated_report.persuasiveness,
+            "create_interest": generated_report.create_interest,
+            "sale_closing": generated_report.sale_closing,
+            "discovery": generated_report.discovery,
+            "cross_selling": generated_report.cross_selling,
+            "solution_fit": generated_report.solution_fit,
+            "coaching_summary": generated_report.coaching_summary,
+            "created_at": generated_report.created_at
+        }
+        return report_dict
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )

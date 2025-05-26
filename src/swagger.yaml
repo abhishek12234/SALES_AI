@@ -773,6 +773,48 @@ paths:
         '404':
           description: Performance report not found
 
+  /api/v1/performance-reports/{report_id}/pdf:
+    get:
+      tags: [Performance Reports]
+      summary: Get performance report as PDF
+      description: |
+        Generate and download a PDF version of the performance report.
+        The PDF includes:
+        - Performance scores visualization
+        - Detailed scores table
+        - Coaching summary
+        - Report metadata
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the performance report to generate PDF for
+      responses:
+        '200':
+          description: PDF report generated successfully
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+              example: "Binary PDF file content"
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+              description: "attachment; filename=performance_report_{report_id}_{timestamp}.pdf"
+        '403':
+          description: Not authorized to access this report
+        '404':
+          description: Report not found
+        '500':
+          description: Failed to generate PDF
+
   /api/v1/auth/google-test:
     get:
       summary: Test Google OAuth Configuration
@@ -800,6 +842,43 @@ paths:
                     type: string
                   instructions:
                     type: string
+
+  /api/v1/performance-reports/generate/{session_id}:
+    post:
+      tags: [Performance Reports]
+      summary: Generate performance report from chat history
+      description: Generate a performance report by analyzing the chat history for a given session.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                  description: ID of the user who participated in the session
+      responses:
+        '201':
+          description: Performance report generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceReportResponse'
+        '400':
+          description: Bad request - Invalid input or chat history not found
+        '404':
+          description: Session not found
 
   # Subscriptions Routes
   /api/v1/subscriptions:
