@@ -139,7 +139,7 @@ You must respond with ONLY a valid JSON object containing the following fields (
 - discovery (integer 0-100)
 - cross_selling (integer 0-100)
 - solution_fit (integer 0-100)
-- coaching_summary (string with detailed feedback)
+- coaching_summary (string with detailed feedback where if there is a new line you should seperate it by double n seperated spacing)
 
 Do not include any text before or after the JSON object."""
 

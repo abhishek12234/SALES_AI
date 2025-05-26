@@ -12,6 +12,7 @@ import os
 from io import BytesIO
 import matplotlib.pyplot as plt
 import numpy as np
+import re
 
 class PerformanceReportPDFGenerator:
     def __init__(self):
@@ -163,7 +164,16 @@ class PerformanceReportPDFGenerator:
         # Coaching Summary
         story.append(Paragraph("Coaching Summary", self.styles['CustomHeading']))
         story.append(Spacer(1, 12))
-        story.append(Paragraph(report_data.coaching_summary, self.styles['CustomBody']))
+        # Format coaching_summary: every **text** starts on a new line and is bold
+        summary = report_data.coaching_summary or ""
+        # Replace **text** with <br/><b>text</b>, except at the start
+        def replacer(match):
+            text = match.group(1)
+            return f"<br/><b>{text}</b>"
+        # If the summary starts with **text**, don't add <br/> at the very start
+        summary = re.sub(r"\*\*(.+?)\*\*", replacer, summary)
+        summary = re.sub(r"^(<br/>)", "", summary)  # Remove leading <br/> if present
+        story.append(Paragraph(summary, self.styles['CustomBody']))
         story.append(Spacer(1, 20))
 
         # Footer
