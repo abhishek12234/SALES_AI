@@ -9,6 +9,9 @@ import json
 from datetime import datetime
 import os
 from sqlalchemy import select
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class PerformanceReportDAL:
     def __init__(self, db_session: AsyncSession):
@@ -20,8 +23,8 @@ class PerformanceReportDAL:
             temperature=0.1
         )
         # Initialize Upstash Redis URL and token
-        self.UPSTASH_URL = os.getenv("UPSTASH_REDIS_REST_URL", "https://warm-koi-14565.upstash.io")
-        self.UPSTASH_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN", "ATjlAAIjcDE5OGE0ZGVjYmE5OTA0OTcyOGUxYzBlNTMxOGEyZWIzY3AxMA")
+        self.UPSTASH_URL = os.getenv("UPSTASH_REDIS_REST_URL")
+        self.UPSTASH_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
 
     async def get_session_history(self, user_id: str, session_id: str) -> list:
         """Get conversation history from Upstash using the same format as chat system"""
@@ -53,6 +56,13 @@ class PerformanceReportDAL:
     async def generate_performance_report(self, user_id: str, session_id: str) -> PerformanceReport:
         """Generate performance report from chat history"""
         try:
+            # Check if a report already exists for this session
+            existing_report = await self.db_session.execute(
+                select(PerformanceReport).where(PerformanceReport.session_id == session_id)
+            )
+            if existing_report.scalar_one_or_none():
+                raise Exception("Performance report for this session is already generated.")
+
             # Get chat history
             chat_history = await self.get_session_history(user_id, session_id)
             if not chat_history:

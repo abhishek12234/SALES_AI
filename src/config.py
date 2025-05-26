@@ -1,9 +1,11 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
 import os
+from typing import Optional
 
 DOTENV = os.path.join(os.path.dirname(__file__), ".env")
 class Settings(BaseSettings):
+    # Database Configuration
     database_hostname: str 
     database_password: str 
     database_name:str
@@ -22,6 +24,13 @@ class Settings(BaseSettings):
     mail_port: int
     mail_server: str
     mail_from_name: str
+
+    # Groq API Configuration
+    groq_api_key: str
+
+    # Upstash Redis Configuration
+    upstash_redis_rest_url: str
+    upstash_redis_rest_token: str
   
     class Config:
         env_file = DOTENV  

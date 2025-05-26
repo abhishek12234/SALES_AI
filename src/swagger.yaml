@@ -709,21 +709,34 @@ paths:
   /api/v1/performance-reports:
     post:
       tags: [Performance Reports]
-      summary: Create a new performance report
-      description: Create a new performance report.
+      summary: Generate a new performance report from chat history
+      description: |
+        Generate a new performance report by analyzing the chat history for a given session.
+        The user is taken from the authenticated user.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PerformanceReportCreate'
+              type: object
+              required:
+                - session_id
+              properties:
+                session_id:
+                  type: string
+                  format: uuid
+                  description: ID of the session to analyze
       responses:
         '201':
-          description: Performance report created successfully
+          description: Performance report generated successfully
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PerformanceReportResponse'
+        '400':
+          description: Bad request - Invalid input or chat history not found
+        '404':
+          description: Session not found
 
   /api/v1/performance-reports/{report_id}:
     get:
@@ -842,43 +855,6 @@ paths:
                     type: string
                   instructions:
                     type: string
-
-  /api/v1/performance-reports/generate/{session_id}:
-    post:
-      tags: [Performance Reports]
-      summary: Generate performance report from chat history
-      description: Generate a performance report by analyzing the chat history for a given session.
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - user_id
-              properties:
-                user_id:
-                  type: string
-                  format: uuid
-                  description: ID of the user who participated in the session
-      responses:
-        '201':
-          description: Performance report generated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PerformanceReportResponse'
-        '400':
-          description: Bad request - Invalid input or chat history not found
-        '404':
-          description: Session not found
 
   # Subscriptions Routes
   /api/v1/subscriptions:
