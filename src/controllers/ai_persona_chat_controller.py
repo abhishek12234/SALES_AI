@@ -12,11 +12,13 @@ from DAL_files.sessions_dal import SessionDAL
 from schemas.ai_personas_chat_schemas import ChatWithPersonaRequest
 from redis_store import get_prompt_template
 from pydantic import BaseModel
+from langchain_google_genai import ChatGoogleGenerativeAI
 
-llm=ChatGroq(
-    model="llama-3.3-70b-versatile",
-    groq_api_key="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",
-    temperature=0.1)
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash",  # or "gemini-1.5-pro" for the pro model
+    google_api_key="AIzaSyCD5cJgxk11YYhM8CeVAvNzmkhpLUaVes8"
+)
+
 
 ai_persona_chat_router = APIRouter()
 ai_persona_chat_service = AIPersonaChatDAL(llm)

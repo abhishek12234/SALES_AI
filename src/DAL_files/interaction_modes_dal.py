@@ -5,6 +5,21 @@ from models.interaction_modes import InteractionMode
 from schemas.interaction_modes_schemas import InteractionModeCreate, InteractionModeUpdate
 from sqlalchemy.sql import exists
 from fastapi import HTTPException
+import re
+
+# Required placeholders for prompt template validation
+REQUIRED_PLACEHOLDERS = {
+    'experience_level',
+    'industry',
+    'industry_details',
+    'manufacturing_model',
+    'manufacturing_model_details',
+    'name',
+    'plant_size_impact',
+    'plant_size_impact_details',
+    'role',
+    'role_details'
+}
 
 class InteractionModeDAL:
     
@@ -33,6 +48,7 @@ class InteractionModeDAL:
     async def create_mode(self, mode_data: InteractionModeCreate, db_session: AsyncSession) -> InteractionMode:
         try:
             mode_data=mode_data.model_dump()
+            self.validate_prompt_template(mode_data.get("prompt_template", ""))
             new_mode = InteractionMode(**mode_data)
             
             db_session.add(new_mode)
@@ -65,6 +81,7 @@ class InteractionModeDAL:
         try:
             for key, value in mode_data.model_dump(exclude_unset=True).items():
                 setattr(mode, key, value)
+            self.validate_prompt_template(mode.prompt_template)
             await db_session.commit()
             await db_session.refresh(mode)
             return mode
@@ -84,3 +101,12 @@ class InteractionModeDAL:
         except Exception as e:
             await db_session.rollback()
             raise HTTPException(status_code=400, detail=f"Failed to delete interaction mode: {str(e)}")
+
+    def validate_prompt_template(self, prompt_template: str):
+        found_placeholders = set(re.findall(r"\{(\w+)\}", prompt_template))
+        missing = REQUIRED_PLACEHOLDERS - found_placeholders
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Check the prompt template. Placeholders missing: {', '.join(missing)}"
+            )

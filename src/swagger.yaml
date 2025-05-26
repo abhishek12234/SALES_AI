@@ -1059,7 +1059,7 @@ paths:
     get:
       tags: [Interaction Modes]
       summary: Get interaction mode by ID
-      description: Retrieve an interaction mode by its ID.
+      description: Retrieve a specific interaction mode by its ID.
       parameters:
         - name: mode_id
           in: path
@@ -1076,10 +1076,11 @@ paths:
                 $ref: '#/components/schemas/InteractionModeResponse'
         '404':
           description: Interaction mode not found
+
     put:
       tags: [Interaction Modes]
       summary: Update interaction mode
-      description: Update an interaction mode by its ID.
+      description: Update an existing interaction mode.
       parameters:
         - name: mode_id
           in: path
@@ -1092,7 +1093,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InteractionModeCreate'
+              $ref: '#/components/schemas/InteractionModeUpdate'
       responses:
         '200':
           description: Interaction mode updated successfully
@@ -1102,6 +1103,25 @@ paths:
                 $ref: '#/components/schemas/InteractionModeResponse'
         '404':
           description: Interaction mode not found
+
+    delete:
+      tags: [Interaction Modes]
+      summary: Delete interaction mode
+      description: Delete an interaction mode by its ID.
+      parameters:
+        - name: mode_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Interaction mode deleted successfully
+        '404':
+          description: Interaction mode not found
+        '400':
+          description: Failed to delete interaction mode
 
   /api/v1/interaction-modes/by-name/{name}:
     get:
