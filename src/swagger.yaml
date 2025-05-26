@@ -953,6 +953,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/AIPersonaResponse'
 
+  /api/v1/ai-personas/generate-all-combinations:
+    post:
+      tags: [AI Personas]
+      summary: Generate all AI Persona combinations
+      description: Generate and add all possible AI Persona combinations to the database. Only accessible by admin/super_admin.
+      security:
+        - BearerAuth: []
+      responses:
+        '201':
+          description: All AI Persona combinations have been added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
   /api/v1/ai-personas/{persona_id}:
     get:
       tags: [AI Personas]

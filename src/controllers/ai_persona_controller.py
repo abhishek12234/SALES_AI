@@ -114,4 +114,15 @@ async def delete_ai_persona(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="AI Persona not found"
         )
-    return None 
+    return None
+
+@ai_persona_router.post("/generate-all-combinations", status_code=status.HTTP_201_CREATED, dependencies=[admin_checker])
+async def generate_all_ai_persona_combinations(
+    session: AsyncSession = Depends(get_session)
+):
+    """
+    Generate and add all possible AI Persona combinations to the database.
+    Only accessible by admin/super_admin.
+    """
+    await ai_persona_service.add_all_combinations(session)
+    return {"message": "All AI Persona combinations have been added."} 

@@ -4,6 +4,17 @@ from uuid import UUID
 from models.ai_personas import AIPersona
 from schemas.ai_personas_schemas import AIPersonaCreate, AIPersonaUpdate
 from sqlalchemy.sql import exists
+from fastapi import HTTPException
+import random
+import itertools
+from datetime import datetime
+from models.industries import Industry
+from models.ai_roles import AIRole
+from models.plant_size_impacts import PlantSizeImpact
+from models.manufacturing_models import ManufacturingModel
+import uuid
+
+
 
 class AIPersonaDAL:
     async def persona_exists(self, persona_id: str, db_session: AsyncSession) -> bool:
@@ -44,6 +55,19 @@ class AIPersonaDAL:
         )
         return result.scalars().all()
 
+    async def get_ai_personas_by_user_id(self, user_id: str, db_session: AsyncSession) -> list[AIPersona]:
+        """
+        Get all AI personas associated with a specific user
+        """
+        try:
+            result = await db_session.execute(
+                select(AIPersona)
+                .where(AIPersona.user_id == user_id)
+            )
+            return result.scalars().all()
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to get AI personas for user: {str(e)}")
+
     async def update_ai_persona(self, persona_id: str, persona_data: AIPersonaUpdate, db_session: AsyncSession) -> AIPersona:
         persona = await self.get_ai_persona_by_id(persona_id, db_session)
         if not persona:
@@ -61,3 +85,94 @@ class AIPersonaDAL:
         await db_session.delete(persona)
         await db_session.commit()
         return True
+
+    async def add_all_combinations(self, db_session: AsyncSession):
+        # Fetch all existing persona names from the DB
+        existing_names = set(
+            (await db_session.execute(select(AIPersona.name))).scalars().all()
+        )
+
+        # Filter NAMES_LIST to only names not already in the DB
+        NAMES_LIST = [
+    "Alex", "Jordan", "Taylor", "Casey", "Morgan", "Quinn", "Riley", "Skyler",
+    "Jesse", "Reese", "Cameron", "Avery", "Jamie", "Kendall", "Blake", "Parker",
+    "Rowan", "Emerson", "Drew", "Hayden", "Harper", "Logan", "Sawyer", "Kai",
+    "Dakota", "Phoenix", "River", "Sky", "Sage", "Remy", "Sloan", "Lane",
+    "John", "Sara", "Liam", "Emma", "Noah", "Olivia", "Mason", "Ava",
+    "Ethan", "Mia", "Isla", "Ezra", "Leo", "Zoe", "Aria", "Theo",
+    "Ivy", "Nora", "Elena", "Miles", "Ella", "Asher", "Chloe", "Lucas",
+    "Nova", "Caleb", "Luna", "Henry", "Layla", "Finn", "Freya", "Jude",
+    "Stella", "Owen", "Clara", "Axel", "Ruby", "Hugo", "Willow", "Silas"]
+    
+        available_names = [name for name in NAMES_LIST if name not in existing_names]
+        random.shuffle(available_names)
+        name_counter = 1
+
+        industry_ids = list((await db_session.execute(Industry.__table__.select())).scalars())
+        ai_role_ids = list((await db_session.execute(AIRole.__table__.select())).scalars())
+        plant_size_impact_ids = list((await db_session.execute(PlantSizeImpact.__table__.select())).scalars())
+        manufacturing_model_ids = list((await db_session.execute(ManufacturingModel.__table__.select())).scalars())
+        geographies = ["US"]  # Replace with your actual geography value(s)
+        experience_levels = ["junior", "mid", "senior"]
+
+        combos = list(itertools.product(
+            industry_ids,
+            ai_role_ids,
+            experience_levels,
+            plant_size_impact_ids,
+            geographies,
+            manufacturing_model_ids
+        ))
+
+        added_count = 0
+
+        for combo in combos:
+            industry_id, ai_role_id, experience_level, plant_size_impact_id, geography, manufacturing_model_id = combo
+
+            # Check if this combination already exists
+            existing = await db_session.execute(
+                select(AIPersona).where(
+                    (AIPersona.industry_id == industry_id) &
+                    (AIPersona.ai_role_id == ai_role_id) &
+                    (AIPersona.experience_level == experience_level) &
+                    (AIPersona.plant_size_impact_id == plant_size_impact_id) &
+                    (AIPersona.geography == geography) &
+                    (AIPersona.manufacturing_model_id == manufacturing_model_id)
+                )
+            )
+            if existing.scalar_one_or_none():
+                continue  # Skip if already exists
+
+            # Get a unique name
+            if available_names:
+                name = available_names.pop()
+            else:
+                # Fallback to generated names if all are used
+                while True:
+                    name = f"Persona_{name_counter}"
+                    name_counter += 1
+                    # Ensure fallback name is unique in DB
+                    name_exists = await db_session.execute(
+                        select(AIPersona).where(AIPersona.name == name)
+                    )
+                    if not name_exists.scalar_one_or_none():
+                        break
+
+            persona = AIPersona(
+                persona_id=str(uuid.uuid4()),
+                name=name,
+                industry_id=industry_id,
+                ai_role_id=ai_role_id,
+                experience_level=experience_level,
+                geography=geography,
+                plant_size_impact_id=plant_size_impact_id,
+                manufacturing_model_id=manufacturing_model_id,
+                status_active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            db_session.add(persona)
+            added_count += 1
+
+        await db_session.commit()
+        print(f"Added {added_count} new combinations (skipped existing).")
