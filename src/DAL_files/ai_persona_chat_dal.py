@@ -87,8 +87,8 @@ class AIPersonaChatDAL:
 
     async def chat_with_persona(self,session_id:str, user_id:str,persona_prompt:str,user_input:str):
         # Set up Upstash Redis for chat history
-        UPSTASH_URL = "https://dynamic-buzzard-35275.upstash.io"
-        UPSTASH_TOKEN = "AYnLAAIjcDFiMWYzZDAxZDE2ZTk0MzE1OTFiMWJhNjEyNDVlNGU4ZXAxMA"
+        UPSTASH_URL = "https://warm-koi-14565.upstash.io"
+        UPSTASH_TOKEN = "ATjlAAIjcDE5OGE0ZGVjYmE5OTA0OTcyOGUxYzBlNTMxOGEyZWIzY3AxMA"
 
         history = UpstashRedisChatMessageHistory(
             url=UPSTASH_URL,
