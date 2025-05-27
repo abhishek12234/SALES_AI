@@ -13,12 +13,16 @@ from typing import Dict, Any, List
 from io import BytesIO
 from datetime import datetime
 from services.pdf_generator import PerformanceReportPDFGenerator
-
+from DAL_files.interaction_mode_report_details_dal import InteractionModeReportDetailDAL
+from DAL_files.sessions_dal import SessionDAL
 
 performance_reports_router = APIRouter(
     prefix="/performance-reports",
     tags=["Performance Reports"]
 )
+
+interaction_mode_report_service = InteractionModeReportDetailDAL()
+session_service = SessionDAL()
 
 @performance_reports_router.post("/", response_model=PerformanceReportResponse, status_code=status.HTTP_201_CREATED)
 async def create_performance_report(
@@ -32,29 +36,22 @@ async def create_performance_report(
     """
     # Generate the report from chat history
     report_service = PerformanceReportDAL(session)
+    session_data = await session_service.get_session_by_id(report_data.session_id, session)
+    if not session_data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    interaction_mode_report = await interaction_mode_report_service.get_interaction_mode_report_by_id(session_data.interaction_mode_id, session)
+    if not interaction_mode_report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interaction mode report not found")
+    
     try:
         generated_report = await report_service.generate_performance_report(
             user_id=current_user.user_id,
-            session_id=report_data.session_id
+            session_id=report_data.session_id,
+            prompt_template=interaction_mode_report.prompt_template
         )
         # Convert to dict to ensure proper serialization
-        report_dict = {
-            "report_id": generated_report.report_id,
-            "session_id": generated_report.session_id,
-            "overall_score": generated_report.overall_score,
-            "engagement_level": generated_report.engagement_level,
-            "communication_level": generated_report.communication_level,
-            "objection_handling": generated_report.objection_handling,
-            "adaptability": generated_report.adaptability,
-            "persuasiveness": generated_report.persuasiveness,
-            "create_interest": generated_report.create_interest,
-            "sale_closing": generated_report.sale_closing,
-            "discovery": generated_report.discovery,
-            "cross_selling": generated_report.cross_selling,
-            "solution_fit": generated_report.solution_fit,
-            "coaching_summary": generated_report.coaching_summary,
-            "created_at": generated_report.created_at
-        }
+        await session_service.update_session(session_data, {"performance_report": generated_report}, session)
         return report_dict
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

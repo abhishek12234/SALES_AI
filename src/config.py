@@ -28,9 +28,7 @@ class Settings(BaseSettings):
     # Groq API Configuration
     groq_api_key: str
 
-    # Upstash Redis Configuration
-    upstash_redis_rest_url: str
-    upstash_redis_rest_token: str
+
   
     class Config:
         env_file = DOTENV  

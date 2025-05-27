@@ -53,7 +53,7 @@ class PerformanceReportDAL:
             print(f"Error retrieving session history: {str(e)}")
             return []
 
-    async def generate_performance_report(self, user_id: str, session_id: str) -> PerformanceReport:
+    async def generate_performance_report(self, user_id: str, session_id: str, prompt_template: str) -> PerformanceReport:
         """Generate performance report from chat history"""
         try:
             # Check if a report already exists for this session
@@ -75,73 +75,7 @@ class PerformanceReportDAL:
             ])
 
             # Create system prompt template
-            system_prompt = """You are an expert sales coach analyzing a conversation between a sales representative and a customer in the manufacturing industry. Your task is to evaluate the sales representative's performance across multiple dimensions and provide actionable coaching feedback.
-
-            Evaluate the sales representative on these key closing skills:
-
-1. OBJECTION HANDLING:
-   - Effectively addressing each concern without dismissing its importance
-   - Providing specific, relevant evidence to overcome objections
-   - Distinguishing between real obstacles and stalling tactics
-   - Using objections as opportunities to reinforce value
-   - Maintaining positive momentum despite challenges
-   - Addressing tariff concerns with realistic mitigation strategies
-
-2. VALUE REINFORCEMENT:
-   - Connecting solution benefits to your specific operational challenges
-   - Quantifying benefits in terms relevant to your KPIs
-   - Differentiating from alternatives in meaningful ways
-   - Presenting convincing ROI and payback period calculations
-   - Emphasizing total value beyond just purchase price
-   - Demonstrating value stability despite potential tariff fluctuations
-
-3. RISK MITIGATION:
-   - Providing credible assurances about implementation and disruption
-   - Outlining specific support and contingency plans
-   - Addressing warranty and performance guarantee concerns
-   - Presenting realistic timelines and resource requirements
-   - Offering references or evidence of successful similar implementations
-   - Presenting effective strategies for managing tariff-related risks
-
-4. NEGOTIATION SKILL:
-   - Finding win-win solutions to contractual concerns
-   - Offering creative alternatives to overcome financial obstacles
-   - Knowing when to be firm and when to be flexible
-   - Maintaining value focus rather than just price focus
-   - Finding appropriate trade-offs rather than one-sided concessions
-   - Negotiating fair tariff protection provisions
-
-5. COMMITMENT SECURING:
-   - Recognizing buying signals and advancing appropriately
-   - Proposing clear, specific next steps
-   - Securing appropriate commitment given the conversation progress
-   - Creating urgency without using high-pressure tactics
-   - Effectively handling final resistance to commitment
-   - Addressing remaining tariff concerns in a way that enables moving forward
-
-6. TARIFF KNOWLEDGE & MITIGATION ASSESSMENT:
-   - Demonstrating understanding of tariff impacts on F&B equipment and parts
-   - Presenting credible strategies for mitigating tariff-related risks
-   - Offering appropriate contractual protections against future tariff increases
-   - Showing awareness of domestic vs. international sourcing implications
-   - Providing relevant examples of how other customers have managed tariff issues
-   - Balancing transparency about tariff risks with confidence in solutions
-
-You must respond with ONLY a valid JSON object containing the following fields (all required):
-- overall_score (integer 0-100)
-- engagement_level (integer 0-100)
-- communication_level (integer 0-100)
-- objection_handling (integer 0-100)
-- adaptability (integer 0-100)
-- persuasiveness (integer 0-100)
-- create_interest (integer 0-100)
-- sale_closing (integer 0-100)
-- discovery (integer 0-100)
-- cross_selling (integer 0-100)
-- solution_fit (integer 0-100)
-- coaching_summary (string with detailed feedback where if there is a new line you should seperate it by double n seperated spacing)
-
-Do not include any text before or after the JSON object."""
+            system_prompt = prompt_template
 
             # Create human prompt template
             human_prompt = """Analyze this conversation and provide a performance evaluation:
@@ -226,7 +160,7 @@ Remember to:
             )
 
             # Create and return the report
-            return await self.create_performance_report(report_data)
+            return analysis
 
         except Exception as e:
             print(f"Error generating performance report: {str(e)}")

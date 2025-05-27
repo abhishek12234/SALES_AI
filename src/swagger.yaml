@@ -27,6 +27,24 @@ tags:
     description: User feedback on sessions
   - name: User Subscriptions
     description: User subscription management
+  - name: AI Persona Chat
+    description: AI Persona chat management
+  - name: AI Roles
+    description: AI role management
+  - name: Industries
+    description: Industry management
+  - name: Manufacturing Models
+    description: Manufacturing model management
+  - name: Plant Size Impacts
+    description: Plant size impact management
+  - name: Interaction Mode AI Roles
+    description: Interaction mode AI role management
+  - name: Interaction Mode Manufacturing Models
+    description: Interaction mode manufacturing model management
+  - name: Interaction Mode Plant Size Impacts
+    description: Interaction mode plant size impact management
+  - name: Interaction Mode Report Details
+    description: Interaction mode report detail management
 
 security:
   - BearerAuth: []
@@ -2247,6 +2265,94 @@ paths:
         '404':
           description: Not found
 
+  /api/v1/interaction-mode-report-details:
+    post:
+      tags: [Interaction Mode Report Details]
+      summary: Create an Interaction Mode Report Detail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeReportDetailBase'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeReportDetailResponse'
+    get:
+      tags: [Interaction Mode Report Details]
+      summary: Get all Interaction Mode Report Details
+      responses:
+        '200':
+          description: List of Interaction Mode Report Details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InteractionModeReportDetailResponse'
+
+  /api/v1/interaction-mode-report-details/{id}:
+    get:
+      tags: [Interaction Mode Report Details]
+      summary: Get Interaction Mode Report Detail by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interaction Mode Report Detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeReportDetailResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Interaction Mode Report Details]
+      summary: Update Interaction Mode Report Detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionModeReportDetailBase'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionModeReportDetailResponse'
+        '404':
+          description: Not found
+    delete:
+      tags: [Interaction Mode Report Details]
+      summary: Delete Interaction Mode Report Detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          description: Not found
+
 components:
   securitySchemes:
     BearerAuth:
@@ -3230,6 +3336,27 @@ components:
           properties:
             interaction_mode_plant_size_impact_id:
               type: string
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    InteractionModeReportDetailBase:
+      type: object
+      properties:
+        mode_id:
+          type: string
+        prompt_template:
+          type: string
+    InteractionModeReportDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/InteractionModeReportDetailBase'
+        - type: object
+          properties:
+            report_detail_id:
+              type: string
+              format: uuid
             created_at:
               type: string
               format: date-time
