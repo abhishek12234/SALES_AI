@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-from models.performance_reports import PerformanceReport
+
 from schemas.performance_reports_schemas import PerformanceReportCreate, PerformanceReportUpdate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.chat_message_histories import UpstashRedisChatMessageHistory
@@ -11,6 +11,9 @@ import os
 from sqlalchemy import select
 from dotenv import load_dotenv
 from config import settings
+from DAL_files.sessions_dal import SessionDAL
+
+session_service = SessionDAL()
 
 load_dotenv()
 
@@ -55,7 +58,7 @@ class PerformanceReportDAL:
             print(f"Error retrieving session history: {str(e)}")
             return []
 
-    async def generate_performance_report(self, user_id: str, session_id: str, prompt_template: str) -> PerformanceReport:
+    async def generate_performance_report(self, user_id: str, session_id: str, prompt_template: str) :
         """Generate performance report from chat history"""
         try:
             # Check if a report already exists for this session
@@ -149,43 +152,17 @@ class PerformanceReportDAL:
 
 
 
-    async def get_performance_report_by_id(self, report_id: str) -> PerformanceReport:
-        stmt = select(PerformanceReport).where(PerformanceReport.report_id == report_id)
-        result = await self.db_session.execute(stmt)
-        return result.scalar_one_or_none()
+    async def get_performance_report_by_user_session(self, session_id: str, user_id: str) :
+        session_data = await session_service.get_session_by_id(session_id, self.db_session)
+        if not session_data:
+            raise HTTPException(status_code=404, detail="Session not found")
 
-    # async def get_reports_by_session_id(self, session_id: str) -> list[PerformanceReport]:
-    #     result = await self.db_session.execute(
-    #         self.db_session.query(PerformanceReport).filter(PerformanceReport.session_id == session_id)
-    #     )
-    #     return result.scalars().all()
+        if not session_data.performance_report:
+            raise HTTPException(status_code=404, detail="Performance report not found")
+        
+        return session_data.performance_report
+        
 
-    async def update_performance_report(self, report_id: str, report_data: PerformanceReportUpdate) -> PerformanceReport:
-        try:
-            report = await self.get_performance_report_by_id(report_id)
-            if not report:
-                return None
-            for key, value in report_data.dict(exclude_unset=True).items():
-                setattr(report, key, value)
-            await self.db_session.flush()
-            await self.db_session.commit()  # Add explicit commit
-            await self.db_session.refresh(report)
-            return report
-        except Exception as e:
-            await self.db_session.rollback()  # Rollback on error
-            print(f"Error updating performance report: {str(e)}")
-            raise Exception(f"Failed to update performance report: {str(e)}")
 
-    async def delete_performance_report(self, report_id: str) -> bool:
-        try:
-            report = await self.get_performance_report_by_id(report_id)
-            if not report:
-                return False
-            await self.db_session.delete(report)
-            await self.db_session.flush()
-            await self.db_session.commit()  # Add explicit commit
-            return True
-        except Exception as e:
-            await self.db_session.rollback()  # Rollback on error
-            print(f"Error deleting performance report: {str(e)}")
-            raise Exception(f"Failed to delete performance report: {str(e)}")
+
+

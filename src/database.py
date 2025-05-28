@@ -28,7 +28,6 @@ async def init_db():
     from models.sessions import Session
     from models.subscriptions import Subscription
     from models.interaction_modes import InteractionMode
-    from models.performance_reports import PerformanceReport
     from models.payments import Payment
     from models.user_subscriptions import UserSubscription
     from models.ai_roles import AIRole

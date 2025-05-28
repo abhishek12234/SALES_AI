@@ -756,53 +756,7 @@ paths:
         '404':
           description: Session not found
 
-  /api/v1/performance-reports/{report_id}:
-    get:
-      tags: [Performance Reports]
-      summary: Get performance report by ID
-      description: Retrieve a performance report by its ID.
-      parameters:
-        - name: report_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Performance report retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PerformanceReportResponse'
-        '404':
-          description: Performance report not found
-    put:
-      tags: [Performance Reports]
-      summary: Update performance report
-      description: Update a performance report by its ID.
-      parameters:
-        - name: report_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PerformanceReportUpdate'
-      responses:
-        '200':
-          description: Performance report updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PerformanceReportResponse'
-        '404':
-          description: Performance report not found
+
 
   /api/v1/performance-reports/{report_id}/pdf:
     get:
@@ -873,6 +827,30 @@ paths:
                     type: string
                   instructions:
                     type: string
+
+  /api/v1/performance-reports/{session_id}:
+    get:
+      tags: [Performance Reports]
+      summary: Get performance report by session ID (current user)
+      description: Retrieve a performance report for the current user and the given session ID. Requires authentication.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Performance report retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceReportResponse'
+        '404':
+          description: Performance report not found
+      security:
+        - BearerAuth: []
 
   # Subscriptions Routes
   /api/v1/subscriptions:

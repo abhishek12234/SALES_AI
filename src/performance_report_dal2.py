@@ -1,6 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-from models.performance_reports import PerformanceReport
 from schemas.performance_reports_schemas import PerformanceReportCreate, PerformanceReportUpdate
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.chat_message_histories import UpstashRedisChatMessageHistory
@@ -114,37 +113,7 @@ class PerformanceReportDAL:
             print(f"Error generating performance report: {str(e)}")
             raise Exception(f"Failed to generate performance report: {str(e)}")
 
-    async def get_performance_report_by_id(self, report_id: str) -> PerformanceReport:
-        stmt = select(PerformanceReport).where(PerformanceReport.report_id == report_id)
-        result = await self.db_session.execute(stmt)
-        return result.scalar_one_or_none()
 
-    async def update_performance_report(self, report_id: str, report_data: PerformanceReportUpdate) -> PerformanceReport:
-        try:
-            report = await self.get_performance_report_by_id(report_id)
-            if not report:
-                return None
-            for key, value in report_data.dict(exclude_unset=True).items():
-                setattr(report, key, value)
-            await self.db_session.flush()
-            await self.db_session.commit()
-            await self.db_session.refresh(report)
-            return report
-        except Exception as e:
-            await self.db_session.rollback()
-            print(f"Error updating performance report: {str(e)}")
-            raise Exception(f"Failed to update performance report: {str(e)}")
 
-    async def delete_performance_report(self, report_id: str) -> bool:
-        try:
-            report = await self.get_performance_report_by_id(report_id)
-            if not report:
-                return False
-            await self.db_session.delete(report)
-            await self.db_session.flush()
-            await self.db_session.commit()
-            return True
-        except Exception as e:
-            await self.db_session.rollback()
-            print(f"Error deleting performance report: {str(e)}")
-            raise Exception(f"Failed to delete performance report: {str(e)}")
+
+
