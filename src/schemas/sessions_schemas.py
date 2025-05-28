@@ -31,7 +31,8 @@ class SessionResponse(SessionBase):
     user_id: str
     start_time: datetime
     end_time: Optional[datetime] = None
-    duration: Optional[int] = None  # interval as string
+    duration: Optional[int] = None 
+    performance_report: Optional[dict] = None
     status: SessionStatusEnum
     created_at: datetime
     updated_at: datetime

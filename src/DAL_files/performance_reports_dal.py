@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 from sqlalchemy import select
 from dotenv import load_dotenv
+from config import settings
 
 load_dotenv()
 
@@ -23,17 +24,18 @@ class PerformanceReportDAL:
             temperature=0.1
         )
         # Initialize Upstash Redis URL and token
-        self.UPSTASH_URL = os.getenv("UPSTASH_REDIS_REST_URL")
-        self.UPSTASH_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+
 
     async def get_session_history(self, user_id: str, session_id: str) -> list:
         """Get conversation history from Upstash using the same format as chat system"""
         try:
             history = UpstashRedisChatMessageHistory(
-                url=self.UPSTASH_URL,
-                token=self.UPSTASH_TOKEN,
+                url=settings.upstash_redis_rest_url,
+                token=settings.upstash_redis_rest_token,
                 session_id=f"user:{user_id}:session:{session_id}"
+                
             )
+            print("history",history,history.messages,"history")
             
             # Get all messages from the history
             messages = history.messages
@@ -57,14 +59,8 @@ class PerformanceReportDAL:
         """Generate performance report from chat history"""
         try:
             # Check if a report already exists for this session
-            existing_report = await self.db_session.execute(
-                select(PerformanceReport).where(PerformanceReport.session_id == session_id)
-            )
-            if existing_report.scalar_one_or_none():
-                raise Exception("Performance report for this session is already generated.")
-
             # Get chat history
-            chat_history = await self.get_session_history(user_id, session_id)
+            chat_history = await self.get_session_history("01234f0f-1612-43d8-95ad-10541f596be9", "b4dcc278-00d7-47fa-a0bd-6a0cb2dba52d")
             if not chat_history:
                 raise Exception("No chat history found for this session")
 
@@ -80,13 +76,13 @@ class PerformanceReportDAL:
             # Create human prompt template
             human_prompt = """Analyze this conversation and provide a performance evaluation:
 
-{conversation}
+                        {conversation}
 
-Remember to:
-1. Score each category from 0-100
-2. Calculate overall score as average of all categories
-3. Provide specific examples in coaching summary
-4. Return ONLY the JSON object"""
+                        Remember to:
+                        1. Score each category from 0-100
+                        2. Calculate overall score as average of all categories
+                        3. Provide specific examples in coaching summary
+                        4. Return ONLY the JSON object"""
 
             # Create the prompt template
             prompt = ChatPromptTemplate.from_messages([
@@ -142,22 +138,7 @@ Remember to:
                 if field_type == int and not (0 <= analysis[field] <= 100):
                     raise Exception(f"Value for {field} must be between 0 and 100")
 
-            # Create performance report
-            report_data = PerformanceReportCreate(
-                session_id=session_id,
-                overall_score=analysis["overall_score"],
-                engagement_level=analysis["engagement_level"],
-                communication_level=analysis["communication_level"],
-                objection_handling=analysis["objection_handling"],
-                adaptability=analysis["adaptability"],
-                persuasiveness=analysis["persuasiveness"],
-                create_interest=analysis["create_interest"],
-                sale_closing=analysis["sale_closing"],
-                discovery=analysis["discovery"],
-                cross_selling=analysis["cross_selling"],
-                solution_fit=analysis["solution_fit"],
-                coaching_summary=analysis["coaching_summary"]
-            )
+
 
             # Create and return the report
             return analysis
@@ -166,32 +147,7 @@ Remember to:
             print(f"Error generating performance report: {str(e)}")
             raise Exception(f"Failed to generate performance report: {str(e)}")
 
-    async def create_performance_report(self, report_data: PerformanceReportCreate) -> PerformanceReport:
-        try:
-            new_report = PerformanceReport(
-                session_id=report_data.session_id,
-                overall_score=report_data.overall_score,
-                engagement_level=report_data.engagement_level,
-                communication_level=report_data.communication_level,
-                objection_handling=report_data.objection_handling,
-                adaptability=report_data.adaptability,
-                persuasiveness=report_data.persuasiveness,
-                create_interest=report_data.create_interest,
-                sale_closing=report_data.sale_closing,
-                discovery=report_data.discovery,
-                cross_selling=report_data.cross_selling,
-                solution_fit=report_data.solution_fit,
-                coaching_summary=report_data.coaching_summary,
-            )
-            self.db_session.add(new_report)
-            await self.db_session.flush()
-            await self.db_session.commit()  # Add explicit commit
-            await self.db_session.refresh(new_report)
-            return new_report
-        except Exception as e:
-            await self.db_session.rollback()  # Rollback on error
-            print(f"Error creating performance report: {str(e)}")
-            raise Exception(f"Failed to create performance report: {str(e)}")
+
 
     async def get_performance_report_by_id(self, report_id: str) -> PerformanceReport:
         stmt = select(PerformanceReport).where(PerformanceReport.report_id == report_id)

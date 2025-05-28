@@ -16,15 +16,12 @@ from services.pdf_generator import PerformanceReportPDFGenerator
 from DAL_files.interaction_mode_report_details_dal import InteractionModeReportDetailDAL
 from DAL_files.sessions_dal import SessionDAL
 
-performance_reports_router = APIRouter(
-    prefix="/performance-reports",
-    tags=["Performance Reports"]
-)
+performance_reports_router = APIRouter()
 
 interaction_mode_report_service = InteractionModeReportDetailDAL()
 session_service = SessionDAL()
 
-@performance_reports_router.post("/", response_model=PerformanceReportResponse, status_code=status.HTTP_201_CREATED)
+@performance_reports_router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_performance_report(
     report_data: PerformanceReportCreate,
     current_user: UserBase = Depends(get_current_user),
@@ -39,8 +36,10 @@ async def create_performance_report(
     session_data = await session_service.get_session_by_id(report_data.session_id, session)
     if not session_data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
-
-    interaction_mode_report = await interaction_mode_report_service.get_interaction_mode_report_by_id(session_data.interaction_mode_id, session)
+    if session_data.performance_report:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Performance report already exists")
+        
+    interaction_mode_report = await interaction_mode_report_service.get_by_mode_id(session_data.mode_id, session)
     if not interaction_mode_report:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interaction mode report not found")
     
@@ -52,7 +51,7 @@ async def create_performance_report(
         )
         # Convert to dict to ensure proper serialization
         await session_service.update_session(session_data, {"performance_report": generated_report}, session)
-        return report_dict
+        return generated_report
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

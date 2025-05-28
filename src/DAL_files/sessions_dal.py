@@ -70,7 +70,7 @@ class SessionDAL:
         )
         return result.scalars().all()
 
-    async def update_session(self,user_session, session_data: SessionUpdate, db_session: AsyncSession) -> Session:
+    async def update_session(self,user_session, session_data: dict, db_session: AsyncSession) -> Session:
     
             
         try:

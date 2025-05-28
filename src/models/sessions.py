@@ -13,6 +13,7 @@ class Session(Base):
     user_id = Column(String(36), ForeignKey('users.user_id'), nullable=False)
     persona_id = Column(String(36), ForeignKey('ai_personas.persona_id'), nullable=False)
     mode_id = Column(String(36), ForeignKey('interaction_modes.mode_id'), nullable=True)
+    performance_report = Column(JSON, nullable=True)
     start_time = Column(TIMESTAMP, nullable=False)
     end_time = Column(TIMESTAMP, nullable=True)
     duration = Column(Integer, nullable=False, server_default=text("0"))  # Changed from Integer to String for interval, now with length

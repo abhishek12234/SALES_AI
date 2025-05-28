@@ -26,6 +26,10 @@ class InteractionModeReportDetailDAL:
         result = await db_session.execute(select(InteractionModeReportDetail).where(InteractionModeReportDetail.report_detail_id == id))
         return result.scalar_one_or_none()
 
+    async def get_by_mode_id(self, mode_id: str, db_session: AsyncSession):
+        result = await db_session.execute(select(InteractionModeReportDetail).where(InteractionModeReportDetail.mode_id == mode_id))
+        return result.scalar_one_or_none()
+
     async def update(self, id: str, model: InteractionModeReportDetailBase, db_session: AsyncSession):
         db_model = await self.get_by_id(id, db_session)
         if not db_model:

@@ -27,6 +27,8 @@ class Settings(BaseSettings):
 
     # Groq API Configuration
     groq_api_key: str
+    upstash_redis_rest_url: str
+    upstash_redis_rest_token: str
 
 
   
