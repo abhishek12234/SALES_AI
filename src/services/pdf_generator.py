@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 
+
 class PerformanceReportPDFGenerator:
     def __init__(self):
         self.styles = getSampleStyleSheet()

@@ -67,43 +67,51 @@ async def get_performance_report_by_id(
     report= await report_service.get_performance_report_by_user_session(session_id, user_id)
     return report
 
-# @performance_reports_router.get("/{report_id}/pdf", response_class=StreamingResponse)
-# async def get_performance_report_pdf(
-#     report_id: str,
-#     current_user: UserBase = Depends(get_current_user),
-#     db_session: AsyncSession = Depends(get_session)
-# ):
-#     """Generate and return a PDF version of the performance report"""
-#     try:
-#         # Initialize DAL
-#         report_dal = PerformanceReportDAL(db_session)
+@performance_reports_router.get("/{session_id}/pdf", response_class=StreamingResponse)
+async def get_performance_report_pdf(
+    session_id: str,
+    current_user: UserBase = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_session)
+):
+    """Generate and return a PDF version of the performance report"""
+    try:
+        # Initialize DAL
+        report_dal = PerformanceReportDAL(db_session)
+        user_id = current_user.user_id
+        # Get the report
+        report = await report_dal.get_performance_report_by_user_session(session_id, user_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
 
-#         # Get the report
-#         report = await report_dal.get_performance_report_by_id(report_id)
-#         if not report:
-#             raise HTTPException(status_code=404, detail="Report not found")
+        # Convert dict to Pydantic model if needed
+        if isinstance(report, dict):
+            report.setdefault("session_id", session_id)
+            report.setdefault("report_id", "N/A")
+            report.setdefault("created_at", datetime.now())
+            report.setdefault("updated_at", datetime.now())
+            report = PerformanceReportResponse(**report)
 
-#         # Generate PDF
-#         pdf_generator = PerformanceReportPDFGenerator()
-#         output_buffer = BytesIO()
-#         pdf_generator.generate_pdf(report, output_buffer)
-#         output_buffer.seek(0)
+        # Generate PDF
+        pdf_generator = PerformanceReportPDFGenerator()
+        output_buffer = BytesIO()
+        pdf_generator.generate_pdf(report, output_buffer)
+        output_buffer.seek(0)
 
-#         # Generate filename with timestamp
-#         filename = f"performance_report_{report.report_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        # Generate filename with timestamp
+        filename = f"performance_report_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
 
-#         # Return PDF as streaming response
-#         return StreamingResponse(
-#             output_buffer,
-#             media_type="application/pdf",
-#             headers={
-#                 "Content-Disposition": f"attachment; filename={filename}",
-#                 "Content-Type": "application/pdf"
-#             }
-#         )
+        # Return PDF as streaming response
+        return StreamingResponse(
+            output_buffer,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Type": "application/pdf"
+            }
+        )
 
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
 
 
 

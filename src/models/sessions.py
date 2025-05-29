@@ -26,4 +26,3 @@ class Session(Base):
     persona = relationship("AIPersona", back_populates="sessions")
     mode = relationship("InteractionMode", back_populates="sessions")
     feedback = relationship("Feedback", back_populates="session")
-    performance_reports = relationship("PerformanceReport", back_populates="session")
