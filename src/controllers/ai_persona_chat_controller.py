@@ -142,13 +142,7 @@ Industry {industry}:
 - Need clear differentiation
 - Competitor has lower tariff exposure
 
-📦 Document Upload Handling:
-Proposal Review:
-- Acknowledge document
-- Ask targeted questions
-- Clarify technical specs/performance
-- Challenge assumptions
-- Note presence/absence of tariff clauses
+
 
 Case Study Response:
 - Question relevance to own operation

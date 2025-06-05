@@ -9,16 +9,7 @@ import uuid
 class AIPersona(Base):
     __tablename__ = 'ai_personas'
     __table_args__ = (
-        Index(
-            'ix_ai_persona_lookup',
-            'industry_id',
-            'ai_role_id',
-            'experience_level',
-            'geography',
-            'plant_size_impact_id',
-            'manufacturing_model_id',
-            mysql_length={'geography': 255}
-        ),
+
         UniqueConstraint(
             'name',
             'industry_id',
@@ -51,3 +42,16 @@ class AIPersona(Base):
     manufacturing_model = relationship("ManufacturingModel",back_populates="ai_persona",lazy="selectin")
     sessions=relationship("Session", back_populates="persona")
 
+
+
+
+
+
+
+
+
+
+
+
+
+    

@@ -38,7 +38,7 @@ class AIPersonaUpdate(BaseModel):
     geography: Optional[str] = None
     plant_size_impact_id: Optional[str] = None
     manufacturing_model_id: Optional[str] = None
-    behavioral_traits: Optional[List[BehavioralTrait]] = None
+    behavioral_traits: Optional[List[BehavioralTrait]] = None 
     status_active: Optional[bool] = None
 
 class IndustrySlim(BaseModel):
@@ -57,7 +57,6 @@ class PlantSizeImpactSlim(BaseModel):
 class ManufacturingModelSlim(BaseModel):
     name: str
     manufacturing_model_id:str
-
 
 class AIPersonaResponse(BaseModel):
     persona_id: str

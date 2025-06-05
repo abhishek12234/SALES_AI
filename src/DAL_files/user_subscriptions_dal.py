@@ -32,7 +32,7 @@ class UserSubscriptionDAL:
         user = await user_service.get_user_by_id(str(user_subscription_data.user_id), db_session)
         if not user:
             raise HTTPException(status_code=404, detail='User not found')
-        print(user_subscription_data,"=====================")
+        
         
         # Validate subscription_id
         subscription = await subscription_service.get_subscription_by_id(str(user_subscription_data.subscription_id), db_session)

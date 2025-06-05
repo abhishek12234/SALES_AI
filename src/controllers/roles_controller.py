@@ -74,3 +74,5 @@ async def delete_role(
             detail="Role not found."
         )
     return
+
+

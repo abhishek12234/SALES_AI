@@ -12,9 +12,6 @@ from DAL_files.interaction_modes_dal import InteractionModeDAL
 from DAL_files.industries_dal import IndustryDAL
 from DAL_files.ai_roles_dal import AIRoleDAL
 from DAL_files.plant_size_impacts_dal import PlantSizeImpactDAL
-from DAL_files.interaction_mode_ai_roles_dal import InteractionModeAIRoleDAL
-from DAL_files.interaction_mode_manufacturing_models_dal import InteractionModeManufacturingModelDAL
-from DAL_files.interaction_mode_plant_size_impacts_dal import  InteractionModePlantSizeImpactDAL
 from redis_store import store_prompt_template
 
 sessions_router = APIRouter()
@@ -25,9 +22,6 @@ intraction_mode_service = InteractionModeDAL()
 industry_service = IndustryDAL()
 ai_role_service = AIRoleDAL()
 plant_size_impact_service = PlantSizeImpactDAL()
-intraction_mode_ai_role_service=InteractionModeAIRoleDAL()
-intraction_mode_manufacturing_model_service=InteractionModeManufacturingModelDAL()
-intraction_mode_plant_size_service=InteractionModePlantSizeImpactDAL()
 
 @sessions_router.post("/", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
@@ -40,7 +34,9 @@ async def create_session(
         persona_data = await persona_service.get_ai_persona_by_id(session_data.persona_id,session)
         if not persona_data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Persona not found")
+            
         print("person_data", persona_data.ai_role_id=="ad42431d-46eb-4905-8c2c-16b897453905", "persona_data")
+
         intraction_mode = await intraction_mode_service.get_mode_by_id(session_data.mode_id,session)
         if not intraction_mode:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mode not found")
@@ -64,30 +60,18 @@ async def create_session(
         geography = persona_data.geography
         exprience_level = persona_data.experience_level
 
-        intraction_mode_ai_role=await intraction_mode_ai_role_service.get_by_mode_and_role(intraction_mode.mode_id,persona_data.ai_role_id,session)
-        if not intraction_mode_ai_role:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interaction mode and AI role not found")
-        
-        intraction_mode_manufacturing_model=await intraction_mode_manufacturing_model_service.get_by_mode_and_model(intraction_mode.mode_id,manufacturing_model.manufacturing_model_id,session)
-        if not intraction_mode_manufacturing_model:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interaction mode and manufacturing model not found")
-        
-        intraction_mode_plant_size=await intraction_mode_plant_size_service.get_by_mode_and_impact(intraction_mode.mode_id,plant_size_impact.plant_size_impact_id,session)
-        if not intraction_mode_plant_size:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Interaction mode and plant size not found")
-
         prompt_template = intraction_mode.prompt_template
         prompt_template = prompt_template.format(
             industry=industry.name,
             industry_details=industry.details,
             experience_level=exprience_level,
             role=ai_role.name,
+            role_details=ai_role.description,
             name=persona_data.name,
-            role_details=intraction_mode_ai_role.prompt_template,
             plant_size_impact=plant_size_impact.name,
-            plant_size_impact_details=intraction_mode_plant_size.prompt_template,
+            plant_size_impact_details=plant_size_impact.description,
             manufacturing_model=manufacturing_model.name,
-            manufacturing_model_details=intraction_mode_manufacturing_model.prompt_template,
+            manufacturing_model_details=manufacturing_model.description,
             geography=geography
         )
 
