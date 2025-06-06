@@ -12,11 +12,6 @@ class ExperienceLevelEnum(str, Enum):
     mid = "mid"
     senior = "senior"
 
-class BehavioralTrait(BaseModel):
-    name: str
-    intensity: int
-    description: Optional[str] = None
-
 class AIPersonaBase(BaseModel):
     name: str
     industry_id: str
@@ -25,7 +20,7 @@ class AIPersonaBase(BaseModel):
     geography: Optional[str] = None
     plant_size_impact_id: str
     manufacturing_model_id: str
-    behavioral_traits: Optional[List[BehavioralTrait]] = None
+    behavioral_detail:str
 
 class AIPersonaCreate(AIPersonaBase):
     pass
@@ -38,7 +33,7 @@ class AIPersonaUpdate(BaseModel):
     geography: Optional[str] = None
     plant_size_impact_id: Optional[str] = None
     manufacturing_model_id: Optional[str] = None
-    behavioral_traits: Optional[List[BehavioralTrait]] = None 
+    behavioral_detail:str 
     status_active: Optional[bool] = None
 
 class IndustrySlim(BaseModel):

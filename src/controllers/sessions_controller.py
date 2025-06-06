@@ -57,6 +57,7 @@ async def create_session(
         plant_size_impact = await plant_size_impact_service.get_plant_size_impact_by_id(persona_data.plant_size_impact_id,session)
         if not plant_size_impact:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plant size impact not found")
+            
         geography = persona_data.geography
         exprience_level = persona_data.experience_level
 

@@ -4,8 +4,6 @@ from sqlalchemy.dialects.mysql import JSON
 from database import Base
 import uuid
 
-
-
 class AIPersona(Base):
     __tablename__ = 'ai_personas'
     __table_args__ = (
@@ -27,10 +25,10 @@ class AIPersona(Base):
     industry_id = Column(String(36), ForeignKey('industries.industry_id'), nullable=False)
     ai_role_id = Column(String(36), ForeignKey('ai_roles.ai_role_id'), nullable=False)
     experience_level = Column(Enum("junior", "mid", "senior"), nullable=False)
-    geography = Column(Text, nullable=True)
+    geography = Column(Text, nullable=False)
     plant_size_impact_id = Column(String(36), ForeignKey('plant_size_impacts.plant_size_impact_id'), nullable=False)
     manufacturing_model_id = Column(String(36), ForeignKey('manufacturing_models.manufacturing_model_id'), nullable=False)
-    behavioral_traits = Column(JSON, nullable=True)
+    behavioral_detail = Column(Text, nullable=False)
     status_active = Column(Boolean, nullable=False, server_default=text('true'))
     created_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))

@@ -39,6 +39,8 @@ tags:
     description: Plant size impact management
   - name: Interaction Mode Report Details
     description: Interaction mode report detail management
+  - name: Interview
+    description: Interview transcript analysis and persona generation
 
 security:
   - BearerAuth: []
@@ -2059,6 +2061,39 @@ paths:
         '404':
           description: Not found
 
+  /api/v1/interview/get-persona-behavior:
+    post:
+      tags: [Interview]
+      summary: Upload interview transcript (DOCX) and generate persona
+      description: Upload a .docx interview transcript. Returns the generated persona instruction.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The .docx file to upload
+      responses:
+        '200':
+          description: Persona generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewUploadResponse'
+        '400':
+          description: Invalid file or error in processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2489,6 +2524,7 @@ components:
         - experience_level
         - plant_size_impact_id
         - manufacturing_model_id
+        - behavioral_detail
       properties:
         name:
           type: string
@@ -2506,17 +2542,8 @@ components:
           type: string
         manufacturing_model_id:
           type: string
-        behavioral_traits:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-              intensity:
-                type: integer
-              description:
-                type: string
+        behavioral_detail:
+          type: string
 
     AIPersonaResponse:
       type: object
@@ -2526,37 +2553,41 @@ components:
           format: uuid
         name:
           type: string
-        industry_id:
-          type: string
-        ai_role_id:
-          type: string
+        industry:
+          type: object
+          properties:
+            name:
+              type: string
+            industry_id:
+              type: string
+        ai_role:
+          type: object
+          properties:
+            name:
+              type: string
+            ai_role_id:
+              type: string
         experience_level:
           type: string
+          enum: [junior, mid, senior]
         geography:
           type: string
-        plant_size_impact_id:
-          type: string
-        manufacturing_model_id:
-          type: string
-        behavioral_traits:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-              intensity:
-                type: integer
-              description:
-                type: string
+        plant_size_impact:
+          type: object
+          properties:
+            name:
+              type: string
+            plant_size_impact_id:
+              type: string
+        manufacturing_model:
+          type: object
+          properties:
+            name:
+              type: string
+            manufacturing_model_id:
+              type: string
         status_active:
           type: boolean
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
 
     InteractionModeCreate:
       type: object
@@ -2860,21 +2891,26 @@ components:
 
     AIRoleBase:
       type: object
+      required:
+        - name
+        - description
       properties:
         name:
           type: string
-
+        description:
+          type: string
     AIRoleCreate:
       allOf:
         - $ref: '#/components/schemas/AIRoleBase'
-
     AIRoleUpdate:
       type: object
       properties:
         name:
           type: string
           nullable: true
-
+        description:
+          type: string
+          nullable: true
     AIRoleResponse:
       allOf:
         - $ref: '#/components/schemas/AIRoleBase'
@@ -2926,8 +2962,13 @@ components:
 
     ManufacturingModelBase:
       type: object
+      required:
+        - name
+        - description
       properties:
         name:
+          type: string
+        description:
           type: string
     ManufacturingModelCreate:
       allOf:
@@ -2936,6 +2977,9 @@ components:
       type: object
       properties:
         name:
+          type: string
+          nullable: true
+        description:
           type: string
           nullable: true
     ManufacturingModelResponse:
@@ -2955,8 +2999,13 @@ components:
 
     PlantSizeImpactBase:
       type: object
+      required:
+        - name
+        - description
       properties:
         name:
+          type: string
+        description:
           type: string
     PlantSizeImpactCreate:
       allOf:
@@ -2965,6 +3014,9 @@ components:
       type: object
       properties:
         name:
+          type: string
+          nullable: true
+        description:
           type: string
           nullable: true
     PlantSizeImpactResponse:
@@ -3003,3 +3055,10 @@ components:
             updated_at:
               type: string
               format: date-time
+
+    InterviewUploadResponse:
+      type: object
+      properties:
+        persona:
+          type: string
+          description: The generated persona instruction from the interview transcript.

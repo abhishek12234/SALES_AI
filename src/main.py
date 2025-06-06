@@ -20,6 +20,7 @@ from controllers.plant_size_impacts_controller import plant_size_impacts_router
 from controllers.performance_reports_controller import performance_reports_router
 from controllers.interaction_mode_report_details_controller import interaction_mode_report_details_router
 from controllers.performance_reports_controller import performance_reports_router
+from controllers.interview_controller import interview_router
 
 
 import yaml
@@ -58,6 +59,7 @@ app.include_router(plant_size_impacts_router, prefix="/api/{version}/plant-size-
 app.include_router(performance_reports_router, prefix="/api/{version}/performance-reports")
 app.include_router(interaction_mode_report_details_router, prefix="/api/{version}/interaction-mode-report-details")
 app.include_router(performance_reports_router, prefix="/api/{version}/performance-reports")
+app.include_router(interview_router, prefix=f"/api/{version}/interview")
 
 # Load Swagger YAML - using correct file path
 swagger_file_path = os.path.join(os.path.dirname(__file__), "swagger.yaml")
