@@ -64,6 +64,7 @@ async def create_session(
         prompt_template = intraction_mode.prompt_template
         prompt_template = prompt_template.format(
             industry=industry.name,
+            behavioral_detail=persona_data.behavioral_detail,
             industry_details=industry.details,
             experience_level=exprience_level,
             role=ai_role.name,
