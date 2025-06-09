@@ -13,5 +13,5 @@ class ManufacturingModel(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()")) 
 
     #relationship
-    interaction_manufacturing_models = relationship("InteractionModeManufacturingModel", back_populates="manufacturing_model")
+    
     ai_persona = relationship("AIPersona", back_populates="manufacturing_model")

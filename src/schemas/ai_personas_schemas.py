@@ -7,16 +7,16 @@ from .plant_size_impacts_schemas import PlantSizeImpactResponse
 from .manufacturing_models_schemas import ManufacturingModelResponse
 from .ai_roles_schemas import AIRoleResponse
 
-class ExperienceLevelEnum(str, Enum):
-    junior = "junior"
-    mid = "mid"
-    senior = "senior"
+# class ExperienceLevelEnum(str, Enum):
+#     junior = "junior"
+#     mid = "mid"
+#     senior = "senior"
 
 class AIPersonaBase(BaseModel):
     name: str
     industry_id: str
     ai_role_id: str
-    experience_level: ExperienceLevelEnum
+    #experience_level: ExperienceLevelEnum
     geography: Optional[str] = None
     plant_size_impact_id: str
     manufacturing_model_id: str
@@ -29,7 +29,7 @@ class AIPersonaUpdate(BaseModel):
     name: Optional[str] = None
     industry_id: Optional[str] = None
     ai_role_id: Optional[str] = None
-    experience_level: Optional[ExperienceLevelEnum] = None
+    #experience_level: Optional[ExperienceLevelEnum] = None
     geography: Optional[str] = None
     plant_size_impact_id: Optional[str] = None
     manufacturing_model_id: Optional[str] = None
@@ -58,7 +58,7 @@ class AIPersonaResponse(BaseModel):
     name: str
     industry: IndustrySlim
     ai_role: AIRoleSlim
-    experience_level: ExperienceLevelEnum
+    #experience_level: ExperienceLevelEnum
     geography: Optional[str] = None
     plant_size_impact: PlantSizeImpactSlim
     manufacturing_model: ManufacturingModelSlim

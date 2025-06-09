@@ -15,4 +15,4 @@ class InteractionMode(Base):
     updated_at = Column(TIMESTAMP, nullable=False, server_default=text("now()"))
     # Relationships
     sessions = relationship("Session", back_populates="mode")
-    interaction_manufacturing_models = relationship("InteractionModeManufacturingModel", back_populates="interaction_mode")
+

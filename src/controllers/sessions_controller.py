@@ -59,14 +59,14 @@ async def create_session(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plant size impact not found")
             
         geography = persona_data.geography
-        exprience_level = persona_data.experience_level
+        #exprience_level = persona_data.experience_level
 
         prompt_template = intraction_mode.prompt_template
         prompt_template = prompt_template.format(
             industry=industry.name,
             behavioral_detail=persona_data.behavioral_detail,
             industry_details=industry.details,
-            experience_level=exprience_level,
+            #experience_level=exprience_level,
             role=ai_role.name,
             role_details=ai_role.description,
             name=persona_data.name,
