@@ -9,7 +9,7 @@ import re
 
 # Required placeholders for prompt template validation
 REQUIRED_PLACEHOLDERS = {
-    'experience_level',
+    'behavioral_detail',
     'industry',
     'industry_details',
     'manufacturing_model',

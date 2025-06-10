@@ -1065,6 +1065,25 @@ paths:
                 $ref: '#/components/schemas/AIPersonaResponse'
         '404':
           description: AI Persona not found
+    delete:
+      tags: [AI Personas]
+      summary: Delete an AI Persona
+      description: Delete an AI Persona by its ID. This endpoint requires admin privileges.
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The ID of the AI Persona to delete
+      responses:
+        '204':
+          description: AI Persona deleted successfully
+        '404':
+          description: AI Persona not found
+        '403':
+          description: Not authorized to delete AI Persona
 
   /api/v1/ai-personas/industry/{industry}:
     get:

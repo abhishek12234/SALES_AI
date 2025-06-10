@@ -12,6 +12,7 @@ from sqlalchemy import select
 from dotenv import load_dotenv
 from config import settings
 from DAL_files.sessions_dal import SessionDAL
+from fastapi import HTTPException
 
 session_service = SessionDAL()
 
