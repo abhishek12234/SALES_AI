@@ -14,3 +14,4 @@ class Industry(Base):
 
     #relationships
     ai_persona = relationship("AIPersona", back_populates="industry")
+    produced_product_categories = relationship("ProducedProductCategory", back_populates="industry")

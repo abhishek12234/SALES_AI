@@ -20,7 +20,9 @@ class AIPersonaBase(BaseModel):
     geography: Optional[str] = None
     plant_size_impact_id: str
     manufacturing_model_id: str
-    behavioral_detail:str
+    behavioral_detail: str
+    company_size_id: str
+    profile_pic: Optional[str] = None  # Path or identifier for the uploaded profile picture
 
 class AIPersonaCreate(AIPersonaBase):
     pass
@@ -31,9 +33,11 @@ class AIPersonaUpdate(BaseModel):
     ai_role_id: Optional[str] = None
     #experience_level: Optional[ExperienceLevelEnum] = None
     geography: Optional[str] = None
+    company_size_id: Optional[str] = None
     plant_size_impact_id: Optional[str] = None
     manufacturing_model_id: Optional[str] = None
-    behavioral_detail:str 
+    behavioral_detail: Optional[str] = None
+    profile_pic: Optional[str] = None  # Path or identifier for the uploaded profile picture
     status_active: Optional[bool] = None
 
 class IndustrySlim(BaseModel):
@@ -63,6 +67,7 @@ class AIPersonaResponse(BaseModel):
     plant_size_impact: PlantSizeImpactSlim
     manufacturing_model: ManufacturingModelSlim
     status_active: bool
+    profile_pic: Optional[str] = None  # Add this field to include the profile picture path or identifier
 
     model_config = {
         "from_attributes": True

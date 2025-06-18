@@ -35,6 +35,8 @@ async def init_db():
     from models.plant_size_impacts import PlantSizeImpact
     from models.industries import Industry
     from models.interaction_mode_report_details import InteractionModeReportDetail
+    from models.produced_product_category import ProducedProductCategory
+    from models.company_size import CompanySize
 
 
 

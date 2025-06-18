@@ -41,6 +41,8 @@ tags:
     description: Interaction mode report detail management
   - name: Interview
     description: Interview transcript analysis and persona generation
+  - name: Company Size
+    description: Company size management
 
 security:
   - BearerAuth: []
@@ -999,6 +1001,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AIPersonaResponse'
+  /api/v1/ai-personas/{persona_id}/upload-profile-pic:
+    post:
+      tags: [AI Personas]
+      summary: Upload profile picture for an AI Persona
+      description: Upload a profile picture (image file) for the specified AI Persona. The file is stored and the path is saved in the database.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Profile picture uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  profile_pic:
+                    type: string
+                    description: Path or identifier of the uploaded profile picture
+        '404':
+          description: AI Persona not found
 
   /api/v1/ai-personas/generate-all-combinations:
     post:
@@ -2113,6 +2154,94 @@ paths:
                   error:
                     type: string
 
+  /api/v1/company-size:
+    post:
+      tags: [Company Size]
+      summary: Create a new company size
+      description: Create a new company size entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanySizeCreate'
+      responses:
+        '201':
+          description: Company size created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySizeResponse'
+        '400':
+          description: Invalid input data
+        '409':
+          description: Company size with this name already exists
+
+    get:
+      tags: [Company Size]
+      summary: Get all company sizes
+      description: Retrieve all company sizes
+      responses:
+        '200':
+          description: List of company sizes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CompanySizeResponse'
+
+  /api/v1/company-size/{company_size_id}:
+    get:
+      tags: [Company Size]
+      summary: Get company size by ID
+      description: Retrieve a specific company size by its ID
+      parameters:
+        - name: company_size_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Company size retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySizeResponse'
+        '404':
+          description: Company size not found
+
+    put:
+      tags: [Company Size]
+      summary: Update company size
+      description: Update an existing company size
+      parameters:
+        - name: company_size_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanySizeUpdate'
+      responses:
+        '200':
+          description: Company size updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySizeResponse'
+        '404':
+          description: Company size not found
+        '409':
+          description: Company size with this name already exists
+
 components:
   securitySchemes:
     BearerAuth:
@@ -2540,10 +2669,10 @@ components:
         - name
         - industry_id
         - ai_role_id
-        - experience_level
         - plant_size_impact_id
         - manufacturing_model_id
         - behavioral_detail
+        - company_size_id
       properties:
         name:
           type: string
@@ -2551,10 +2680,6 @@ components:
           type: string
         ai_role_id:
           type: string
-        experience_level:
-          type: string
-          enum: [junior, mid, senior]
-          description: 'junior, mid, or senior'
         geography:
           type: string
         plant_size_impact_id:
@@ -2563,6 +2688,9 @@ components:
           type: string
         behavioral_detail:
           type: string
+        company_size_id:
+          type: string
+          description: 'ID of the company size for the persona'
 
     AIPersonaResponse:
       type: object
@@ -2607,6 +2735,9 @@ components:
               type: string
         status_active:
           type: boolean
+        profile_pic:
+          type: string
+          description: Base64-encoded image string or null if not available
 
     InteractionModeCreate:
       type: object
@@ -2850,7 +2981,6 @@ components:
       required:
         - industry
         - manufacturing_model
-        - experience_level
         - role
         - geography
         - plant_size_impact
@@ -2861,9 +2991,6 @@ components:
         manufacturing_model:
           type: string
           enum: [self_manufacturing, contract_manufacturing]
-        experience_level:
-          type: string
-          enum: [junior, mid, senior]
         role:
           type: string
           enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
@@ -2888,7 +3015,6 @@ components:
         - name
         - industry
         - role
-        - experience_level
         - plant_size_impact
         - geography
         - manufacturing_model
@@ -2899,13 +3025,11 @@ components:
           type: string
         role:
           type: string
-        experience_level:
-          type: string
         plant_size_impact:
           type: string
         geography:
           type: string
-        manufacturing_model:
+               manufacturing_model:
           type: string
 
     AIRoleBase:
@@ -3081,3 +3205,89 @@ components:
         persona:
           type: string
           description: The generated persona instruction from the interview transcript.
+
+    # New schemas for profile picture upload
+    ProfilePicUploadResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        profile_pic:
+          type: string
+          description: Path or identifier of the uploaded profile picture
+
+    # AI Persona Profile Picture Upload
+    UploadProfilePicRequest:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+          description: The image file to upload as the profile picture.
+
+    UploadProfilePicResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        profile_pic:
+          type: string
+          description: Path or identifier of the uploaded profile picture
+
+    # Company Size Schemas
+    CompanySizeCreate:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          description: Name of the company size
+          example: "Enterprise"
+        description:
+          type: string
+          description: Description of the company size
+          example: "Companies with more than 1000 employees"
+
+    CompanySizeUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the company size
+          example: "Enterprise"
+        description:
+          type: string
+          description: Description of the company size
+          example: "Companies with more than 1000 employees"
+
+    CompanySizeResponse:
+      type: object
+      required:
+        - company_size_id
+        - name
+        - description
+        - created_at
+        - updated_at
+      properties:
+        company_size_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the company size
+        name:
+          type: string
+          description: Name of the company size
+        description:
+          type: string
+          description: Description of the company size
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the company size was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the company size was last updated

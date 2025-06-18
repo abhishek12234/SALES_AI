@@ -19,7 +19,9 @@ from models.ai_roles import AIRole
 from models.manufacturing_models import ManufacturingModel
 from models.plant_size_impacts import PlantSizeImpact
 from models.industries import Industry
+from models.produced_product_category import ProducedProductCategory
 from models.interaction_mode_report_details import InteractionModeReportDetail
+from models.company_size import CompanySize
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
