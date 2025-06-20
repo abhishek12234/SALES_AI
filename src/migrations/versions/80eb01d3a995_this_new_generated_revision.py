@@ -27,6 +27,12 @@ def upgrade() -> None:
     op.alter_column('produced_product_category', 'details',
                existing_type=mysql.TEXT(),
                nullable=False)
+    op.create_table(
+        'persona_produced_product',
+        sa.Column('persona_product_id', sa.String(length=36), primary_key=True, nullable=False),
+        sa.Column('persona_id', sa.String(length=36), sa.ForeignKey('ai_personas.persona_id'), nullable=False),
+        sa.Column('product_id', sa.String(length=36), sa.ForeignKey('produced_product_category.product_id'), nullable=False)
+    )
     # ### end Alembic commands ###
 
 
@@ -40,4 +46,5 @@ def downgrade() -> None:
     op.drop_constraint('uq_ai_persona_unique_combo', 'ai_personas', type_='unique')
     op.create_index('ix_ai_persona_lookup', 'ai_personas', ['industry_id', 'ai_role_id', 'geography', 'plant_size_impact_id', 'manufacturing_model_id'], unique=False, mysql_length={'geography': 255})
     op.drop_column('ai_personas', 'company_size_id')
+    op.drop_table('persona_produced_product')
     # ### end Alembic commands ###

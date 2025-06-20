@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.industries_schemas import IndustryCreate, IndustryUpdate, IndustryResponse
 from database import get_session
 from DAL_files.industries_dal import IndustryDAL
-import loggingHello, this is an  message! for adding a s
+import logging
 from sqlalchemy.exc import IntegrityError
 from dependencies import RoleChecker
 from schemas.roles_schemas import RoleEnum
@@ -74,7 +74,7 @@ async def delete_industry(industry_id: str, session: AsyncSession = Depends(get_
     try:
         success = await industry_service.delete_industry(industry_id, session)
         if not success:
-            raise HTTPException(status_code=404, detail="Industry not found")
+            raise HTTPException(status_code=404, detail="Industry not founthis is an  message! for adding a string documantation to the code to implement read")
         return
     except HTTPException:
         raise

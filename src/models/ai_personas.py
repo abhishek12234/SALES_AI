@@ -43,6 +43,7 @@ class AIPersona(Base):
     manufacturing_model = relationship("ManufacturingModel",back_populates="ai_persona",lazy="selectin")
     sessions=relationship("Session", back_populates="persona")
     company_size_new = relationship("CompanySize", back_populates="ai_persona", lazy="selectin")
+    persona_products = relationship("PersonaProducedProduct", back_populates="ai_persona", lazy="selectin")
 
 
 

@@ -1,7 +1,6 @@
 from fastapi import FastAPI, status
 from contextlib import asynccontextmanager
 from database import init_db
-from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from controllers.users_controller import auth_router
 from controllers.roles_controller import roles_router
@@ -22,9 +21,11 @@ from controllers.performance_reports_controller import performance_reports_route
 from controllers.interaction_mode_report_details_controller import interaction_mode_report_details_router
 from controllers.performance_reports_controller import performance_reports_router
 from controllers.interview_controller import interview_router
-from controllers.produced_product_category_controller import produced_product_category_router
 from controllers.company_size_controller import company_size_router
-
+from controllers.produced_product_category_controller import produced_product_category_router
+from controllers.ai_coaching_controller import ai_coaching_router
+from controllers.persona_produced_product_controller import persona_produced_product_router
+from controllers.proposal_document_uploading_controller import document_router
 
 import yaml
 import os
@@ -46,10 +47,6 @@ version = "v1"
 
 register_middleware(app)
 
-@app.get("/", include_in_schema=False)
-def root():
-    return RedirectResponse(url="/docs")
-
 app.include_router(auth_router, prefix="/api/{version}/auth")
 app.include_router(roles_router, prefix="/api/{version}/roles")
 app.include_router(ai_persona_router, prefix="/api/{version}/ai-personas")
@@ -67,8 +64,12 @@ app.include_router(performance_reports_router, prefix="/api/{version}/performanc
 app.include_router(interaction_mode_report_details_router, prefix="/api/{version}/interaction-mode-report-details")
 app.include_router(performance_reports_router, prefix="/api/{version}/performance-reports")
 app.include_router(interview_router, prefix="/api/{version}/interview")
+app.include_router(company_size_router, prefix="/api/{version}/company-sizes")
 app.include_router(produced_product_category_router, prefix="/api/{version}/produced-product-categories")
-app.include_router(company_size_router, prefix="/api/{version}/company-size")
+app.include_router(ai_coaching_router, prefix="/api/{version}/ai-coaching")
+app.include_router(persona_produced_product_router, prefix="/api/{version}/persona-produced-products")
+app.include_router(document_router, prefix="/api/{version}/documents")
+
 # Load Swagger YAML - using correct file path
 swagger_file_path = os.path.join(os.path.dirname(__file__), "swagger.yaml")
 try:

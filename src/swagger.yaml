@@ -41,8 +41,16 @@ tags:
     description: Interaction mode report detail management
   - name: Interview
     description: Interview transcript analysis and persona generation
-  - name: Company Size
+  - name: Company Sizes
     description: Company size management
+  - name: Produced Product Categories
+    description: Produced product category management
+  - name: AI Coaching
+    description: AI coaching and monitoring management
+  - name: Persona Produced Product
+    description: Persona produced product management
+  - name: Proposal Document Processing
+    description: Document processing and analysis
 
 security:
   - BearerAuth: []
@@ -86,8 +94,8 @@ paths:
             schema:
               $ref: '#/components/schemas/UserLogin'
             example:
-              email: "user@example.com"
-              password: "yourpassword"
+              email: "super@admin.com"
+              password: "123456"
               remember_me: true
       responses:
         '200':
@@ -1001,45 +1009,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AIPersonaResponse'
-  /api/v1/ai-personas/{persona_id}/upload-profile-pic:
-    post:
-      tags: [AI Personas]
-      summary: Upload profile picture for an AI Persona
-      description: Upload a profile picture (image file) for the specified AI Persona. The file is stored and the path is saved in the database.
-      security:
-        - BearerAuth: []
-      parameters:
-        - name: persona_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-      responses:
-        '200':
-          description: Profile picture uploaded successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  profile_pic:
-                    type: string
-                    description: Path or identifier of the uploaded profile picture
-        '404':
-          description: AI Persona not found
 
   /api/v1/ai-personas/generate-all-combinations:
     post:
@@ -1106,25 +1075,6 @@ paths:
                 $ref: '#/components/schemas/AIPersonaResponse'
         '404':
           description: AI Persona not found
-    delete:
-      tags: [AI Personas]
-      summary: Delete an AI Persona
-      description: Delete an AI Persona by its ID. This endpoint requires admin privileges.
-      parameters:
-        - name: persona_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: The ID of the AI Persona to delete
-      responses:
-        '204':
-          description: AI Persona deleted successfully
-        '404':
-          description: AI Persona not found
-        '403':
-          description: Not authorized to delete AI Persona
 
   /api/v1/ai-personas/industry/{industry}:
     get:
@@ -2154,11 +2104,12 @@ paths:
                   error:
                     type: string
 
-  /api/v1/company-size:
+  # Company Sizes Routes
+  /api/v1/company-sizes:
     post:
-      tags: [Company Size]
+      tags: [Company Sizes]
       summary: Create a new company size
-      description: Create a new company size entry
+      description: Create a new company size in the system.
       requestBody:
         required: true
         content:
@@ -2172,18 +2123,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CompanySizeResponse'
-        '400':
-          description: Invalid input data
-        '409':
-          description: Company size with this name already exists
-
     get:
-      tags: [Company Size]
+      tags: [Company Sizes]
       summary: Get all company sizes
-      description: Retrieve all company sizes
+      description: Retrieve all company sizes in the system.
       responses:
         '200':
-          description: List of company sizes retrieved successfully
+          description: Company sizes retrieved successfully
           content:
             application/json:
               schema:
@@ -2191,11 +2137,11 @@ paths:
                 items:
                   $ref: '#/components/schemas/CompanySizeResponse'
 
-  /api/v1/company-size/{company_size_id}:
+  /api/v1/company-sizes/{company_size_id}:
     get:
-      tags: [Company Size]
+      tags: [Company Sizes]
       summary: Get company size by ID
-      description: Retrieve a specific company size by its ID
+      description: Retrieve a company size by its unique ID.
       parameters:
         - name: company_size_id
           in: path
@@ -2212,11 +2158,10 @@ paths:
                 $ref: '#/components/schemas/CompanySizeResponse'
         '404':
           description: Company size not found
-
     put:
-      tags: [Company Size]
+      tags: [Company Sizes]
       summary: Update company size
-      description: Update an existing company size
+      description: Update a company size by its unique ID.
       parameters:
         - name: company_size_id
           in: path
@@ -2239,8 +2184,461 @@ paths:
                 $ref: '#/components/schemas/CompanySizeResponse'
         '404':
           description: Company size not found
-        '409':
-          description: Company size with this name already exists
+    delete:
+      tags: [Company Sizes]
+      summary: Delete company size
+      description: Delete a company size by its unique ID.
+      parameters:
+        - name: company_size_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Company size deleted successfully
+        '404':
+          description: Company size not found
+
+  # Add profile picture upload endpoint for AI Personas:
+  /api/v1/ai-personas/{persona_id}/upload-profile-pic:
+    post:
+      tags: [AI Personas]
+      summary: Upload profile picture for AI Persona
+      description: Upload a profile picture for a specific AI Persona.
+      parameters:
+        - name: persona_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The image file to upload
+      responses:
+        '200':
+          description: Profile picture uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  profile_pic:
+                    type: string
+        '404':
+          description: AI Persona not found
+        '500':
+          description: Upload failed
+
+  # Produced Product Categories Routes
+  /api/v1/produced-product-categories:
+    post:
+      tags: [Produced Product Categories]
+      summary: Create a new produced product category
+      description: Create a new produced product category in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProducedProductCategoryCreate'
+      responses:
+        '201':
+          description: Produced product category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducedProductCategoryResponse'
+    get:
+      tags: [Produced Product Categories]
+      summary: Get all produced product categories
+      description: Retrieve all produced product categories in the system.
+      responses:
+        '200':
+          description: Produced product categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProducedProductCategoryResponse'
+
+  /api/v1/produced-product-categories/{product_id}:
+    get:
+      tags: [Produced Product Categories]
+      summary: Get produced product category by ID
+      description: Retrieve a produced product category by its unique ID.
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Produced product category retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducedProductCategoryResponse'
+        '404':
+          description: Produced product category not found
+    put:
+      tags: [Produced Product Categories]
+      summary: Update produced product category
+      description: Update a produced product category by its unique ID.
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProducedProductCategoryUpdate'
+      responses:
+        '200':
+          description: Produced product category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProducedProductCategoryResponse'
+        '404':
+          description: Produced product category not found
+    delete:
+      tags: [Produced Product Categories]
+      summary: Delete produced product category
+      description: Delete a produced product category by its unique ID.
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Produced product category deleted successfully
+        '404':
+          description: Produced product category not found
+
+  # AI Coaching Routes
+  /api/v1/ai-coaching/coaching/start/{session_id}:
+    post:
+      tags: [AI Coaching]
+      summary: Start AI coaching monitoring
+      description: |
+        Start AI coaching monitoring for a specific session.
+        
+        This endpoint:
+        1. Verifies the session exists and belongs to the user
+        2. Checks if coaching is already active
+        3. Starts background monitoring for new messages
+        4. Returns the initial status
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the session to start coaching for
+      responses:
+        '200':
+          description: AI coaching started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartCoachingResponse'
+        '400':
+          description: AI coaching already active or insufficient messages
+        '404':
+          description: Session not found or no conversation data
+        '500':
+          description: Failed to start AI coaching monitoring
+
+  /api/v1/ai-coaching/coaching/feedback/{session_id}:
+    get:
+      tags: [AI Coaching]
+      summary: Get coaching feedback for session
+      description: |
+        Get all AI coaching feedback for a session.
+        
+        This endpoint returns all coaching feedback that has been generated
+        for the specified session, whether from monitoring or manual analysis.
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the session to get feedback for
+      responses:
+        '200':
+          description: Coaching feedback retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                  session_id:
+                    type: string
+                    format: uuid
+                  feedback_history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CoachingFeedbackResponse'
+                  total_feedback_count:
+                    type: integer
+                  is_monitoring_active:
+                    type: boolean
+        '404':
+          description: Session not found
+        '500':
+          description: Error retrieving coaching feedback
+
+  /api/v1/ai-coaching/coaching/status/{session_id}:
+    get:
+      tags: [AI Coaching]
+      summary: Get coaching status for session
+      description: |
+        Get the current AI coaching status for a session.
+        
+        This endpoint returns:
+        - Whether monitoring is active
+        - Current message count
+        - Number of coaching feedback entries
+        - Monitoring start time and last check time
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the session to get status for
+      responses:
+        '200':
+          description: Coaching status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoachingStatusResponse'
+        '404':
+          description: Session not found
+        '500':
+          description: Error getting coaching status
+
+  /api/v1/ai-coaching/coaching/stop/{session_id}:
+    post:
+      tags: [AI Coaching]
+      summary: Stop AI coaching monitoring
+      description: |
+        Stop AI coaching monitoring for a specific session.
+        
+        This endpoint:
+        1. Verifies the session exists and belongs to the user
+        2. Stops the background monitoring task
+        3. Cleans up monitoring resources
+        4. Returns the final status
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID of the session to stop coaching for
+      responses:
+        '200':
+          description: AI coaching stopped successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StopCoachingResponse'
+        '400':
+          description: No active AI coaching monitoring found
+        '404':
+          description: Session not found
+        '500':
+          description: Failed to stop AI coaching monitoring
+
+  /api/v1/ai-coaching/coaching/admin/active-sessions:
+    get:
+      tags: [AI Coaching]
+      summary: Get all active coaching sessions (Admin)
+      description: |
+        Get all active coaching sessions for debugging/admin purposes.
+        This endpoint returns information about all currently monitored sessions.
+      responses:
+        '200':
+          description: Active sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active_sessions_count:
+                    type: integer
+                  active_sessions:
+                    type: array
+                    items:
+                      type: object
+                  timestamp:
+                    type: string
+                    format: date-time
+        '500':
+          description: Error getting active sessions
+
+  /api/v1/persona-produced-products:
+    post:
+      tags: [Persona Produced Product]
+      summary: Create a new persona produced product
+      description: Create a new persona produced product in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonaProducedProductCreate'
+      responses:
+        '201':
+          description: Persona produced product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaProducedProductResponse'
+    get:
+      tags: [Persona Produced Product]
+      summary: Get all persona produced products
+      description: Retrieve all persona produced products in the system.
+      responses:
+        '200':
+          description: Persona produced products retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonaProducedProductResponse'
+
+  /api/v1/persona-produced-products/{persona_product_id}:
+    get:
+      tags: [Persona Produced Product]
+      summary: Get persona produced product by ID
+      description: Retrieve a persona produced product by its unique ID.
+      parameters:
+        - name: persona_product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Persona produced product retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaProducedProductResponse'
+
+  /api/v1/documents/upload:
+    post:
+      tags: [Proposal Document Processing]
+      summary: Upload and process a single document (PDF or DOCX)
+      description: |
+        Upload and process a single document (PDF or DOCX).
+        This endpoint:
+        1. Validates the uploaded file
+        2. Extracts content from the document
+        3. Analyzes content using AI
+        4. Returns a comprehensive summary
+        Supported formats: PDF, DOCX, DOC
+        Maximum file size: 10MB
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Document processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentProcessingResponse'
+        '400':
+          description: Invalid file or validation error
+        '422':
+          description: Document processing failed
+        '500':
+          description: Unexpected error
+
+  /api/v1/documents/batch-upload:
+    post:
+      tags: [Proposal Document Processing]
+      summary: Upload and process multiple documents at once
+      description: |
+        Upload and process multiple documents at once.
+        This endpoint:
+        1. Processes up to 5 documents simultaneously
+        2. Validates each file individually
+        3. Returns results for all files (successful and failed)
+        4. Provides batch processing statistics
+        Maximum files per batch: 5
+        Supported formats: PDF, DOCX, DOC
+        Maximum file size per file: 10MB
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Batch processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchProcessingResponse'
+        '400':
+          description: Invalid file or validation error
+        '422':
+          description: Batch processing failed
+        '500':
+          description: Unexpected error
 
 components:
   securitySchemes:
@@ -2690,7 +3088,9 @@ components:
           type: string
         company_size_id:
           type: string
-          description: 'ID of the company size for the persona'
+        profile_pic:
+          type: string
+          description: Path or identifier for the uploaded profile picture
 
     AIPersonaResponse:
       type: object
@@ -2714,9 +3114,6 @@ components:
               type: string
             ai_role_id:
               type: string
-        experience_level:
-          type: string
-          enum: [junior, mid, senior]
         geography:
           type: string
         plant_size_impact:
@@ -2737,7 +3134,9 @@ components:
           type: boolean
         profile_pic:
           type: string
-          description: Base64-encoded image string or null if not available
+          description: Path or identifier for the uploaded profile picture
+        company_size_id:
+          type: string
 
     InteractionModeCreate:
       type: object
@@ -2981,6 +3380,7 @@ components:
       required:
         - industry
         - manufacturing_model
+        - experience_level
         - role
         - geography
         - plant_size_impact
@@ -2991,6 +3391,9 @@ components:
         manufacturing_model:
           type: string
           enum: [self_manufacturing, contract_manufacturing]
+        experience_level:
+          type: string
+          enum: [junior, mid, senior]
         role:
           type: string
           enum: [quality_manager, production_manager, maintenance_manager, plant_manager]
@@ -3015,6 +3418,7 @@ components:
         - name
         - industry
         - role
+        - experience_level
         - plant_size_impact
         - geography
         - manufacturing_model
@@ -3025,11 +3429,13 @@ components:
           type: string
         role:
           type: string
+        experience_level:
+          type: string
         plant_size_impact:
           type: string
         geography:
           type: string
-               manufacturing_model:
+        manufacturing_model:
           type: string
 
     AIRoleBase:
@@ -3206,38 +3612,7 @@ components:
           type: string
           description: The generated persona instruction from the interview transcript.
 
-    # New schemas for profile picture upload
-    ProfilePicUploadResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        profile_pic:
-          type: string
-          description: Path or identifier of the uploaded profile picture
-
-    # AI Persona Profile Picture Upload
-    UploadProfilePicRequest:
-      type: object
-      required:
-        - file
-      properties:
-        file:
-          type: string
-          format: binary
-          description: The image file to upload as the profile picture.
-
-    UploadProfilePicResponse:
-      type: object
-      properties:
-        message:
-          type: string
-        profile_pic:
-          type: string
-          description: Path or identifier of the uploaded profile picture
-
-    # Company Size Schemas
-    CompanySizeCreate:
+    CompanySizeBase:
       type: object
       required:
         - name
@@ -3245,49 +3620,252 @@ components:
       properties:
         name:
           type: string
-          description: Name of the company size
-          example: "Enterprise"
         description:
           type: string
-          description: Description of the company size
-          example: "Companies with more than 1000 employees"
-
+    CompanySizeCreate:
+      allOf:
+        - $ref: '#/components/schemas/CompanySizeBase'
     CompanySizeUpdate:
       type: object
       properties:
         name:
           type: string
-          description: Name of the company size
-          example: "Enterprise"
+          nullable: true
         description:
           type: string
-          description: Description of the company size
-          example: "Companies with more than 1000 employees"
-
+          nullable: true
     CompanySizeResponse:
+      allOf:
+        - $ref: '#/components/schemas/CompanySizeBase'
+        - type: object
+          properties:
+            company_size_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    ProducedProductCategoryBase:
       type: object
       required:
-        - company_size_id
+        - industry_id
         - name
-        - description
-        - created_at
-        - updated_at
+        - details
       properties:
-        company_size_id:
+        industry_id:
           type: string
           format: uuid
-          description: Unique identifier for the company size
         name:
           type: string
-          description: Name of the company size
-        description:
+        details:
           type: string
-          description: Description of the company size
-        created_at:
+    ProducedProductCategoryCreate:
+      allOf:
+        - $ref: '#/components/schemas/ProducedProductCategoryBase'
+    ProducedProductCategoryUpdate:
+      type: object
+      properties:
+        industry_id:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        details:
+          type: string
+          nullable: true
+    ProducedProductCategoryResponse:
+      allOf:
+        - $ref: '#/components/schemas/ProducedProductCategoryBase'
+        - type: object
+          properties:
+            product_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    StartCoachingResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        initial_message_count:
+          type: integer
+        monitoring_status:
+          type: string
+
+    CoachingFeedbackResponse:
+      type: object
+      properties:
+        feedback_id:
+          type: string
+        feedback:
+          type: string
+        timestamp:
+          type: string
+        analysis_id:
+          type: string
+        message_count_at_time:
+          type: integer
+        trigger_type:
+          type: string
+
+    CoachingStatusResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        is_monitoring:
+          type: boolean
+        message_count:
+          type: integer
+        feedback_count:
+          type: integer
+        monitoring_started_at:
           type: string
           format: date-time
-          description: Timestamp when the company size was created
-        updated_at:
+          nullable: true
+        last_checked:
           type: string
           format: date-time
-          description: Timestamp when the company size was last updated
+          nullable: true
+
+    StopCoachingResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        monitoring_status:
+          type: string
+    
+    PersonaProducedProductBase:
+      type: object
+      required:
+        - persona_id
+        - product_id
+      properties:
+        persona_id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+
+    PersonaProducedProductCreate:
+      allOf:
+        - $ref: '#/components/schemas/PersonaProducedProductBase'
+
+    PersonaProducedProductUpdate:
+      type: object
+      properties:
+        persona_id:
+          type: string
+          format: uuid
+          nullable: true
+        product_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    PersonaProducedProductResponse:
+      allOf:
+        - $ref: '#/components/schemas/PersonaProducedProductBase'
+        - type: object
+          properties:
+            persona_product_id:
+              type: string
+              format: uuid
+
+    DocumentMetadata:
+      type: object
+      properties:
+        extraction_method:
+          type: string
+        pages:
+          type: integer
+        tables_detected:
+          type: boolean
+        content_length:
+          type: integer
+        has_content:
+          type: boolean
+    DocumentProcessingResponse:
+      type: object
+      properties:
+        filename:
+          type: string
+        processing_timestamp:
+          type: string
+        file_size_kb:
+          type: number
+          format: float
+        document_metadata:
+          $ref: '#/components/schemas/DocumentMetadata'
+        summary:
+          type: string
+        success:
+          type: boolean
+        error:
+          type: string
+          nullable: true
+        processing_time_seconds:
+          type: number
+          format: float
+          nullable: true
+    DocumentValidationResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        error:
+          type: string
+          nullable: true
+        file_size_mb:
+          type: number
+          format: float
+          nullable: true
+        file_type:
+          type: string
+          nullable: true
+    BatchProcessingResponse:
+      type: object
+      properties:
+        total_files:
+          type: integer
+        successful_processes:
+          type: integer
+        failed_processes:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentProcessingResponse'
+        batch_processing_time_seconds:
+          type: number
+          format: float

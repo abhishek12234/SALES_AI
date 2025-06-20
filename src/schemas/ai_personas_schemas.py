@@ -6,6 +6,7 @@ from .industries_schemas import IndustryResponse
 from .plant_size_impacts_schemas import PlantSizeImpactResponse
 from .manufacturing_models_schemas import ManufacturingModelResponse
 from .ai_roles_schemas import AIRoleResponse
+from .persona_produced_product_schemas import PersonaProducedProductResponse
 
 # class ExperienceLevelEnum(str, Enum):
 #     junior = "junior"
@@ -57,6 +58,10 @@ class ManufacturingModelSlim(BaseModel):
     name: str
     manufacturing_model_id:str
 
+class CompanySizeModelSlim(BaseModel):
+    name: str
+    company_size_id:str
+
 class AIPersonaResponse(BaseModel):
     persona_id: str
     name: str
@@ -66,8 +71,11 @@ class AIPersonaResponse(BaseModel):
     geography: Optional[str] = None
     plant_size_impact: PlantSizeImpactSlim
     manufacturing_model: ManufacturingModelSlim
+    company_size_new: CompanySizeModelSlim
+    behavioral_detail: str
     status_active: bool
     profile_pic: Optional[str] = None  # Add this field to include the profile picture path or identifier
+    persona_products: List[PersonaProducedProductResponse] = []
 
     model_config = {
         "from_attributes": True
