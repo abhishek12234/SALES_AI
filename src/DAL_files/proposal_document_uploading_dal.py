@@ -145,37 +145,11 @@ class DocumentProcessingDAL:
                 return "Document content is too short or empty for meaningful analysis."
 
             prompt = f"""
-You are a senior sales analyst providing a comprehensive professional summary of this sales document. Write a detailed, structured summary that a C-level executive would expect to see.
+You are a senior sales analyst providing a comprehensive professional summary of this sales document. Write a detailed, structured summary that a C-level executive would expect to see. Also don't include any of the recomendations from your end, it must be fully based on the document.
+[Important: in the summary resposne don't include you are giving a summary or the summary word]
 
 Document Content:
 {content['text']}
-
-Document Metadata:
-- Extraction Method: {content.get('extraction_method', 'Unknown')}
-- Pages/Paragraphs: {content.get('pages', content.get('paragraphs', 'Unknown'))}
-- Tables Detected: {content.get('tables_detected', False)}
-
-Provide a professional sales analysis summary that includes:
-
-EXECUTIVE OVERVIEW: Brief description of document type, purpose, and strategic context.
-
-FINANCIAL PERFORMANCE: All revenue figures, sales targets, pricing data, profit margins, cost analysis, budget allocations, and financial KPIs with specific numbers and percentages.
-
-SALES METRICS & ANALYTICS: Conversion rates, pipeline data, sales cycle length, win/loss ratios, quota attainment, territory performance, year-over-year comparisons, and growth metrics.
-
-PRODUCT/SERVICE PORTFOLIO: Detailed breakdown of products or services discussed, including pricing strategies, market positioning, competitive advantages, feature sets, and performance by product line.
-
-CUSTOMER INTELLIGENCE: Client profiles, account values, customer segments, retention rates, churn analysis, customer acquisition costs, lifetime value, and market demographics.
-
-MARKET ANALYSIS: Territory coverage, market share data, competitive landscape, industry trends, market opportunities, and geographic performance.
-
-OPERATIONAL INSIGHTS: Sales team performance, resource allocation, process efficiency, bottlenecks, and operational recommendations.
-
-STRATEGIC RECOMMENDATIONS: Priority actions, improvement opportunities, risk mitigation, resource needs, and next steps for sales optimization.
-
-Write in a formal, professional tone suitable for senior management review. Include all quantitative data with context and implications. Ensure the summary provides actionable business intelligence for sales leadership decision-making.
-
-If the document doesn't contain sales-related content, provide a general business analysis following the same structured approach but adapted to the document's actual content.
 """
 
             response = self.model.generate_content(prompt)

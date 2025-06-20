@@ -2340,49 +2340,13 @@ paths:
           description: Produced product category not found
 
   # AI Coaching Routes
-  /api/v1/ai-coaching/coaching/start/{session_id}:
-    post:
-      tags: [AI Coaching]
-      summary: Start AI coaching monitoring
-      description: |
-        Start AI coaching monitoring for a specific session.
-        
-        This endpoint:
-        1. Verifies the session exists and belongs to the user
-        2. Checks if coaching is already active
-        3. Starts background monitoring for new messages
-        4. Returns the initial status
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: ID of the session to start coaching for
-      responses:
-        '200':
-          description: AI coaching started successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StartCoachingResponse'
-        '400':
-          description: AI coaching already active or insufficient messages
-        '404':
-          description: Session not found or no conversation data
-        '500':
-          description: Failed to start AI coaching monitoring
-
-  /api/v1/ai-coaching/coaching/feedback/{session_id}:
+  /api/v1/ai-coaching/feedback/{session_id}:
     get:
       tags: [AI Coaching]
-      summary: Get coaching feedback for session
+      summary: Get comprehensive AI coaching feedback for a specific chat session
       description: |
-        Get all AI coaching feedback for a session.
-        
-        This endpoint returns all coaching feedback that has been generated
-        for the specified session, whether from monitoring or manual analysis.
+        Get comprehensive AI coaching feedback for a specific chat session.
+        - **session_id**: The ID of the chat session to analyze
       parameters:
         - name: session_id
           in: path
@@ -2399,37 +2363,28 @@ paths:
               schema:
                 type: object
                 properties:
-                  user_id:
-                    type: string
-                    format: uuid
+                  success:
+                    type: boolean
                   session_id:
                     type: string
-                    format: uuid
-                  feedback_history:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/CoachingFeedbackResponse'
-                  total_feedback_count:
-                    type: integer
-                  is_monitoring_active:
-                    type: boolean
+                  session_info:
+                    type: object
+                  coaching_feedback:
+                    type: string
+                  conversation_summary:
+                    type: object
         '404':
-          description: Session not found
+          description: Session not found or you don't have access to this session
         '500':
-          description: Error retrieving coaching feedback
+          description: Internal server error
 
-  /api/v1/ai-coaching/coaching/status/{session_id}:
+  /api/v1/ai-coaching/messages/{session_id}:
     get:
       tags: [AI Coaching]
-      summary: Get coaching status for session
+      summary: Get all messages from a chat session for review
       description: |
-        Get the current AI coaching status for a session.
-        
-        This endpoint returns:
-        - Whether monitoring is active
-        - Current message count
-        - Number of coaching feedback entries
-        - Monitoring start time and last check time
+        Get all messages from a chat session for review.
+        - **session_id**: The ID of the chat session to retrieve messages from
       parameters:
         - name: session_id
           in: path
@@ -2437,79 +2392,49 @@ paths:
           schema:
             type: string
             format: uuid
-          description: ID of the session to get status for
+          description: ID of the session to get messages for
       responses:
         '200':
-          description: Coaching status retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CoachingStatusResponse'
-        '404':
-          description: Session not found
-        '500':
-          description: Error getting coaching status
-
-  /api/v1/ai-coaching/coaching/stop/{session_id}:
-    post:
-      tags: [AI Coaching]
-      summary: Stop AI coaching monitoring
-      description: |
-        Stop AI coaching monitoring for a specific session.
-        
-        This endpoint:
-        1. Verifies the session exists and belongs to the user
-        2. Stops the background monitoring task
-        3. Cleans up monitoring resources
-        4. Returns the final status
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-          description: ID of the session to stop coaching for
-      responses:
-        '200':
-          description: AI coaching stopped successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StopCoachingResponse'
-        '400':
-          description: No active AI coaching monitoring found
-        '404':
-          description: Session not found
-        '500':
-          description: Failed to stop AI coaching monitoring
-
-  /api/v1/ai-coaching/coaching/admin/active-sessions:
-    get:
-      tags: [AI Coaching]
-      summary: Get all active coaching sessions (Admin)
-      description: |
-        Get all active coaching sessions for debugging/admin purposes.
-        This endpoint returns information about all currently monitored sessions.
-      responses:
-        '200':
-          description: Active sessions retrieved successfully
+          description: Messages retrieved successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  active_sessions_count:
+                  success:
+                    type: boolean
+                  session_id:
+                    type: string
+                  message_count:
                     type: integer
-                  active_sessions:
+                  messages:
                     type: array
                     items:
                       type: object
-                  timestamp:
-                    type: string
-                    format: date-time
+        '404':
+          description: Session not found or you don't have access to this session
         '500':
-          description: Error getting active sessions
+          description: Internal server error
+
+  /api/v1/ai-coaching/health:
+    get:
+      tags: [AI Coaching]
+      summary: Health check endpoint for the AI coaching service
+      description: Health check endpoint for the AI coaching service.
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+                  version:
+                    type: string
 
   /api/v1/persona-produced-products:
     post:

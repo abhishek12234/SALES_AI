@@ -24,7 +24,7 @@ class AIPersonaChatDAL:
 
         self.llm = ChatGoogleGenerativeAI(
                     model="gemini-2.0-flash",  # or "gemini-1.5-pro" for the pro model
-                    google_api_key="AIzaSyCD5cJgxk11YYhM8CeVAvNzmkhpLUaVes8"
+                    google_api_key="AIzaSyCPnG_Yyctqo-QX47IWlkQ8Aoz1-mgCXV0"
                 )
 
     async def chat_with_persona(self,session_id:str, user_id:str,persona_prompt:str,user_input:str):
