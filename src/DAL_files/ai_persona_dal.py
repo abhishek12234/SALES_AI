@@ -2,7 +2,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from uuid import UUID
 from models.ai_personas import AIPersona
-from models.persona_produced_product import PersonaProducedProduct
 from schemas.ai_personas_schemas import AIPersonaCreate, AIPersonaUpdate
 from sqlalchemy.sql import exists
 from fastapi import HTTPException
@@ -14,7 +13,6 @@ from models.ai_roles import AIRole
 from models.plant_size_impacts import PlantSizeImpact
 from models.manufacturing_models import ManufacturingModel
 import uuid
-from sqlalchemy.orm import selectinload
 
 
 
@@ -25,10 +23,7 @@ class AIPersonaDAL:
         return result.scalar_one_or_none() is not None
 
     async def get_all_ai_personas(self, db_session: AsyncSession) -> list[AIPersona]:
-        result = await db_session.execute(
-            select(AIPersona)
-            .options(selectinload(AIPersona.persona_products).selectinload(PersonaProducedProduct.product))
-        )
+        result = await db_session.execute(select(AIPersona))
         return result.scalars().all()
 
     async def create_ai_persona(self, persona_data: AIPersonaCreate, db_session: AsyncSession) -> AIPersona:
@@ -46,12 +41,7 @@ class AIPersonaDAL:
         if not persona:
             return None
 
-        result = await db_session.execute(
-            select(AIPersona)
-            .options(selectinload(AIPersona.persona_products).selectinload(PersonaProducedProduct.product))
-            .where(AIPersona.persona_id == persona_id)
-        )
-        return result.scalar_one_or_none()
+        return await db_session.get(AIPersona, persona_id)
 
     async def get_ai_persona_by_name(self, name: str, db_session: AsyncSession) -> AIPersona:
         result = await db_session.execute(
