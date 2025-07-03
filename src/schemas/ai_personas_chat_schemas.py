@@ -27,7 +27,6 @@ class ChatWithPersonaRequest(BaseModel):
     persona_id: str
     industry: str
     manufacturing_model: ManufacturingModelEnum
-    experience_level: ExperienceLevelEnum
     role: RoleEnum
     user_input: str
     geography: str

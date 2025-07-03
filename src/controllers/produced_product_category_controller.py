@@ -27,7 +27,7 @@ async def create_produced_product_category(
     created = await produced_product_category_service.create_produced_product_category(model, session)
     return created
 
-@produced_product_category_router.get("/{product_id}", response_model=ProducedProductCategoryResponse, status_code=status.HTTP_200_OK, dependencies=[super_admin_checker])
+@produced_product_category_router.get("/{product_id}", response_model=ProducedProductCategoryResponse, status_code=status.HTTP_200_OK, dependencies=[sales_checker])
 async def get_produced_product_category_by_id(
     product_id: str,
     session: AsyncSession = Depends(get_session)
@@ -40,7 +40,7 @@ async def get_produced_product_category_by_id(
         )
     return model
 
-@produced_product_category_router.get("/", response_model=list[ProducedProductCategoryResponse], status_code=status.HTTP_200_OK, dependencies=[super_admin_checker])
+@produced_product_category_router.get("/", response_model=list[ProducedProductCategoryResponse], status_code=status.HTTP_200_OK, dependencies=[sales_checker])
 async def get_all_produced_product_categories(
     session: AsyncSession = Depends(get_session)
 ):

@@ -14,17 +14,14 @@ import uuid
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 
-
-
-
-
 # You should inject or configure your LLM instance elsewhere and pass it in
 class AIPersonaChatDAL:
     def __init__(self):
 
         self.llm = ChatGoogleGenerativeAI(
-                    model="gemini-2.0-flash",  # or "gemini-1.5-pro" for the pro model
-                    google_api_key="AIzaSyCD5cJgxk11YYhM8CeVAvNzmkhpLUaVes8"
+                    model="gemini-2.5-flash",  # or "gemini-1.5-pro" for the pro model
+                    google_api_key="AIzaSyCD5cJgxk11YYhM8CeVAvNzmkhpLUaVes8",
+                    model_config = {"extra": "forbid"}
                 )
 
     async def chat_with_persona(self,session_id:str, user_id:str,persona_prompt:str,user_input:str):
@@ -49,6 +46,6 @@ class AIPersonaChatDAL:
         conversation_chain = ConversationChain(memory=memory, prompt=prompt, llm=self.llm)
 
         # Get the response
-        teacher_response = conversation_chain.invoke({"input": user_input})
+        teacher_response = await conversation_chain.ainvoke({"input": user_input})
 
         return teacher_response["response"]

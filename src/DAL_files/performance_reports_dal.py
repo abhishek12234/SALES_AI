@@ -64,7 +64,7 @@ class PerformanceReportDAL:
         try:
             # Check if a report already exists for this session
             # Get chat history
-            chat_history = await self.get_session_history("01234f0f-1612-43d8-95ad-10541f596be9", "b4dcc278-00d7-47fa-a0bd-6a0cb2dba52d")
+            chat_history = await self.get_session_history(user_id, session_id)
             if not chat_history:
                 raise Exception("No chat history found for this session")
 
@@ -117,30 +117,7 @@ class PerformanceReportDAL:
                 print(f"Invalid JSON response from LLM. Raw content: {repr(content)}")
                 raise Exception(f"Invalid response format from LLM: {str(e)}")
             
-            # Validate required fields and their types
-            required_fields = {
-                "overall_score": int,
-                "engagement_level": int,
-                "communication_level": int,
-                "objection_handling": int,
-                "adaptability": int,
-                "persuasiveness": int,
-                "create_interest": int,
-                "sale_closing": int,
-                "discovery": int,
-                "cross_selling": int,
-                "solution_fit": int,
-                "coaching_summary": str
-            }
             
-            # Check if all required fields are present and have correct types
-            for field, field_type in required_fields.items():
-                if field not in analysis:
-                    raise Exception(f"Missing required field in LLM response: {field}")
-                if not isinstance(analysis[field], field_type):
-                    raise Exception(f"Invalid type for field {field}. Expected {field_type.__name__}, got {type(analysis[field]).__name__}")
-                if field_type == int and not (0 <= analysis[field] <= 100):
-                    raise Exception(f"Value for {field} must be between 0 and 100")
 
 
 

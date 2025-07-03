@@ -11,6 +11,7 @@ from DAL_files.sessions_dal import SessionDAL
 from schemas.ai_personas_chat_schemas import ChatWithPersonaRequest
 from redis_store import get_prompt_template
 from pydantic import BaseModel
+from typing import Optional
 
 
 ai_persona_chat_router = APIRouter()
@@ -21,6 +22,7 @@ session_services = SessionDAL()
 
 class ChatRequest(BaseModel):
     user_input: str
+    thought: Optional[str] = None 
 
 @ai_persona_chat_router.post("/chat/{session_id}")
 async def chat_with_persona(
@@ -46,7 +48,7 @@ async def chat_with_persona(
         user_input = chat_request.user_input
         response = await ai_persona_chat_service.chat_with_persona(session_id, user_id, persona_prompt, user_input)
 
-        return {"response": response}
+        return {"response":response}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

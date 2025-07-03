@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.industries_schemas import IndustryCreate, IndustryUpdate, IndustryResponse
 from database import get_session
 from DAL_files.industries_dal import IndustryDAL
-import loggingHello, this is an  message! for adding a s
+import logging
 from sqlalchemy.exc import IntegrityError
 from dependencies import RoleChecker
 from schemas.roles_schemas import RoleEnum

@@ -12,7 +12,10 @@ from DAL_files.interaction_modes_dal import InteractionModeDAL
 from DAL_files.industries_dal import IndustryDAL
 from DAL_files.ai_roles_dal import AIRoleDAL
 from DAL_files.plant_size_impacts_dal import PlantSizeImpactDAL
+from DAL_files.company_size_dal import CompanySizeDAL
 from redis_store import store_prompt_template
+from DAL_files.persona_produced_product_dal import PersonaProducedProductDAL
+from typing import List
 
 sessions_router = APIRouter()
 session_service = SessionDAL()
@@ -22,6 +25,8 @@ intraction_mode_service = InteractionModeDAL()
 industry_service = IndustryDAL()
 ai_role_service = AIRoleDAL()
 plant_size_impact_service = PlantSizeImpactDAL()
+company_size_service=CompanySizeDAL()
+persona_produced_product_service = PersonaProducedProductDAL()
 
 @sessions_router.post("/", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
@@ -58,6 +63,15 @@ async def create_session(
         if not plant_size_impact:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plant size impact not found")
             
+        company_size=await company_size_service.get_company_size_by_id(persona_data.company_size_id,session)
+        if not company_size:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company size not found")
+        
+        persona_products = await persona_produced_product_service.get_persona_produced_products_by_persona_id(persona_data.persona_id, session)
+        if not persona_products:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Persona product not found")
+        # Prepare a string with name and details of each product
+        persona_products_str = ", ".join([f"{p.name}: {p.details}" for p in persona_products])
         geography = persona_data.geography
         #exprience_level = persona_data.experience_level
 
@@ -67,6 +81,9 @@ async def create_session(
             behavioral_detail=persona_data.behavioral_detail,
             industry_details=industry.details,
             #experience_level=exprience_level,
+            company_size=company_size.name,
+            company_size_detail=company_size.description,
+            persona_products=persona_products_str,
             role=ai_role.name,
             role_details=ai_role.description,
             name=persona_data.name,
@@ -74,7 +91,8 @@ async def create_session(
             plant_size_impact_details=plant_size_impact.description,
             manufacturing_model=manufacturing_model.name,
             manufacturing_model_details=manufacturing_model.description,
-            geography=geography
+            geography=geography,
+         
         )
 
         user_id=current_user.user_id
@@ -105,7 +123,7 @@ async def get_session_by_id(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Your Session not found")
     return session_data
 
-@sessions_router.get("/by-user/{user_id}", response_model=list[SessionResponse], status_code=status.HTTP_200_OK)
+@sessions_router.get("/by-user/{user_id}", response_model=List[SessionResponse], status_code=status.HTTP_200_OK)
 async def get_sessions_by_user_id(
     user_id: str,
     session: AsyncSession = Depends(get_session)

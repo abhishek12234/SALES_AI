@@ -26,7 +26,7 @@ class AIPersona(Base):
     industry_id = Column(String(36), ForeignKey('industries.industry_id'), nullable=False)
     ai_role_id = Column(String(36), ForeignKey('ai_roles.ai_role_id'), nullable=False)
     #experience_level = Column(Enum("junior", "mid", "senior"), nullable=False)
-    geography = Column(Text, nullable=False)
+    geography = Column(String(255), nullable=False)
     plant_size_impact_id = Column(String(36), ForeignKey('plant_size_impacts.plant_size_impact_id'), nullable=False)
     manufacturing_model_id = Column(String(36), ForeignKey('manufacturing_models.manufacturing_model_id'), nullable=False)
     behavioral_detail = Column(Text, nullable=False)
@@ -43,6 +43,7 @@ class AIPersona(Base):
     manufacturing_model = relationship("ManufacturingModel",back_populates="ai_persona",lazy="selectin")
     sessions=relationship("Session", back_populates="persona")
     company_size_new = relationship("CompanySize", back_populates="ai_persona", lazy="selectin")
+    persona_products = relationship("PersonaProducedProduct", back_populates="ai_persona", lazy="selectin")
 
 
 

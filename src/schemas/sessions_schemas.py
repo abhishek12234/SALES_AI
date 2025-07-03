@@ -12,7 +12,7 @@ class SessionStatusEnum(str, Enum):
 class SessionBase(BaseModel):
    
     persona_id: str
-    mode_id: str
+    mode_id: Optional[str]= None
 
 
 class SessionCreate(SessionBase):

@@ -15,3 +15,4 @@ class ProducedProductCategory(Base):
 
     # relationship
     industry = relationship("Industry", back_populates="produced_product_categories")
+    persona_products = relationship("PersonaProducedProduct", back_populates="product")
